@@ -6,10 +6,10 @@ public class Transaction {
 
   public String name;
   Operation currentOperation;
-  boolean shouldBeAbort;
+  TransactionStatus transactionStatus;
 
   public Transaction() {
-
+    transactionStatus = TransactionStatus.ACTIVE;
   }
 
 }
