@@ -7,7 +7,7 @@ import javafx.util.Pair;
 public class DataManager {
 
   //variable name -> (last commited value, curvalue)
-  Map<Integer, Pair<Integer, Integer>> variables;
+  private Map<Integer, Pair<Integer, Integer>> variables;
 
   public DataManager() {
     variables = new HashMap<>();
@@ -15,6 +15,14 @@ public class DataManager {
 
   public void insertData(Integer variable, Integer curvalue) {
     variables.put(variable, new Pair<>(curvalue, curvalue));
+  }
+
+  public Integer getCurValue(Integer variable) {
+    return variables.get(variable).getValue();
+  }
+
+  public Integer getCommittedValue(Integer variable) {
+    return variables.get(variable).getKey();
   }
 
 }

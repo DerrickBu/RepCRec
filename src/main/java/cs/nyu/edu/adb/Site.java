@@ -4,8 +4,8 @@ import java.util.concurrent.locks.Lock;
 
 public class Site {
 
-  public LockManager lockManager;
-  public DataManager dataManager;
+  private LockManager lockManager;
+  private DataManager dataManager;
   Boolean isDown;
 
   public Site() {

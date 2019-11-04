@@ -1,5 +1,6 @@
 package cs.nyu.edu.adb;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Transaction {
@@ -8,11 +9,13 @@ public class Transaction {
   private Operation currentOperation;
   private TransactionStatus transactionStatus;
   private boolean isReadOnly;
+  public List<Operation> waitingOperatons;
 
   public Transaction(String name, boolean isReadOnly) {
     transactionStatus = TransactionStatus.ACTIVE;
     this.name = name;
     this.isReadOnly = isReadOnly;
+    waitingOperatons = new ArrayList<>();
   }
 
   public boolean isReadOnly() {

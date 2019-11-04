@@ -2,6 +2,7 @@ package cs.nyu.edu.adb;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TransactionManager {
 
@@ -54,7 +55,7 @@ public class TransactionManager {
   }
 
   public Transaction initTransaction(Operation operation, boolean isReadOnly) {
-    return new Transaction(operation.getName(), isReadOnly);
+    return new Transaction(operation.getTransaction(), isReadOnly);
   }
 
   // TODO:
@@ -67,8 +68,54 @@ public class TransactionManager {
 
   }
 
-  public void read() {
+  public boolean read(Operation operation) {
 
+    Transaction transaction = getTransaction(operation);
+    Integer var = operation.getVariable();
+
+    if(blockedTransactions.contains(transaction.getName())) {
+      transaction.waitingOperatons.add(operation);
+      return false;
+    }
+
+    transaction.setCurrentOperation(operation);
+
+    // TODO: support read only transaction read
+    if(transaction.isReadOnly()) {
+      if(var % 2 == 1) {
+        Site site = sites.get((1 + var) % 10);
+        return readVar(site, var, true);
+      } else {
+        // TODO: Not sure about the logic here
+        return readVar(sites.get(0), var, true);
+      }
+
+    } else {
+      // If the variable is odd number
+      if(var % 2 == 1) {
+        Site site = sites.get((1 + var) % 10);
+        if(site.isDown) {
+          blockedTransactions.add(transaction.getName());
+          return false;
+        } else {
+          return readVar(site, var, false);
+        }
+      } else {
+        for(int i = 1; i <= 10; ++i) {
+          if(!sites.get(i).isDown) {
+            return readVar(sites.get(i), var, false);
+          }
+        }
+        return false;
+      }
+    }
+  }
+
+  public boolean readVar(Site site, Integer var, boolean readCommittedValue) {
+    Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(var) :
+        site.getDataManager().getCurValue(var);
+    System.out.println("x" + var + ": " + val);
+    return true;
   }
 
   // TODO:
@@ -89,6 +136,13 @@ public class TransactionManager {
   // TODO:
   public boolean detectDeadLock() {
     return false;
+  }
+
+  private Transaction getTransaction(Operation operation) {
+    List<Transaction> transactions = allTransactions.stream()
+        .filter(transaction -> transaction.getName().equals(operation.getTransaction()))
+        .collect(Collectors.toList());
+    return transactions.get(0);
   }
 
 }
