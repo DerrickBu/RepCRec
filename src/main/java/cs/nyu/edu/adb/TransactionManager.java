@@ -41,6 +41,7 @@ public class TransactionManager {
         case IOUtils.END:
           break;
         case IOUtils.FAIL:
+          fail(operation.getSite());
           break;
         case IOUtils.READ:
           break;
@@ -58,7 +59,7 @@ public class TransactionManager {
     return new Transaction(operation.getTransaction(), isReadOnly);
   }
 
-  // TODO:
+  // TODO: Commit values, release read and write locks, execute operations being blocked by the locks
   public void commit() {
 
   }
@@ -69,9 +70,11 @@ public class TransactionManager {
 
     // Mark all transactions which have accessed items in this site 'SHOULD_BE_ABORTED'
     LockManager lockManager = failSite.getLockManager();
+
     lockManager.readLocks.entrySet().stream().forEach(entry ->
       entry.getValue().stream().forEach(transaction ->
           getTransaction(transaction).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT)));
+
     lockManager.writeLock.entrySet().stream().forEach(entry ->
             getTransaction(entry.getValue()).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
   }
@@ -158,6 +161,9 @@ public class TransactionManager {
       if(site.isDown || !site.getLockManager().canWrite(var, transactionID)) {
         blockTransaction(transaction);
         return false;
+      } else {
+        site.getDataManager().updateValue(var, value);
+        return true;
       }
     } else {
       List<Site> activeSites = sites.stream()
@@ -168,6 +174,7 @@ public class TransactionManager {
         return false;
       } else {
         sites.stream().forEach(site -> site.getDataManager().updateValue(var, value));
+        return true;
       }
     }
   }

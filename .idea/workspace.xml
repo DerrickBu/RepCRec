@@ -2,9 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="825b987b-2414-4c43-9875-60d0d1712246" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/LockManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/LockManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Site.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Site.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -128,11 +125,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="456">
-              <caret line="73" column="17" selection-start-line="73" selection-start-column="17" selection-end-line="73" selection-end-column="17" />
+            <state relative-caret-position="329">
+              <caret line="173" column="20" selection-start-line="173" selection-start-column="20" selection-end-line="173" selection-end-column="20" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#5723#5724#0" expanded="true" />
+                <element signature="e#5882#5883#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -275,12 +272,12 @@
       <option name="presentableId" value="Default" />
       <updated>1572619916631</updated>
       <workItem from="1572619918254" duration="6428000" />
-      <workItem from="1572648673312" duration="12834000" />
+      <workItem from="1572648673312" duration="13178000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="19262000" />
+    <option name="totallyTimeSpent" value="19606000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
@@ -415,11 +412,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="456">
-          <caret line="73" column="17" selection-start-line="73" selection-start-column="17" selection-end-line="73" selection-end-column="17" />
+        <state relative-caret-position="329">
+          <caret line="173" column="20" selection-start-line="173" selection-start-column="20" selection-end-line="173" selection-end-column="20" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#5723#5724#0" expanded="true" />
+            <element signature="e#5882#5883#0" expanded="true" />
           </folding>
         </state>
       </provider>
