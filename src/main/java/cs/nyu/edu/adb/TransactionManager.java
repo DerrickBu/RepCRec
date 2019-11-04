@@ -77,12 +77,12 @@ public class TransactionManager {
     // Mark all transactions which have accessed items in this site 'SHOULD_BE_ABORTED'
     LockManager lockManager = failSite.getLockManager();
 
-    lockManager.readLocks.entrySet().stream().forEach(entry ->
-      entry.getValue().stream().forEach(transaction ->
+    lockManager.readLocks.forEach((key, value) ->
+      value.forEach(transaction ->
           getTransaction(transaction).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT)));
 
-    lockManager.writeLock.entrySet().stream().forEach(entry ->
-            getTransaction(entry.getValue()).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
+    lockManager.writeLock.forEach((key, value) ->
+            getTransaction(value).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
   }
 
   // TODO:
