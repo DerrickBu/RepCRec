@@ -7,8 +7,8 @@ import java.util.Map;
 public class LockManager {
 
   // variable -> transaction index
-  Map<Integer, List<Integer>> readLocks;
-  Map<Integer, Integer> writeLock;
+  public Map<Integer, List<Integer>> readLocks;
+  public Map<Integer, Integer> writeLock;
 
   public boolean canRead(Integer variable, Integer transaction) {
     if(!writeLock.containsKey(variable) || writeLock.get(variable) == transaction) {

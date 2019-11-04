@@ -63,9 +63,17 @@ public class TransactionManager {
 
   }
 
-  // TODO:
-  public void fail() {
+  public void fail(Integer site) {
+    Site failSite = sites.get(site);
+    failSite.isDown = true;
 
+    // Mark all transactions which have accessed items in this site 'SHOULD_BE_ABORTED'
+    LockManager lockManager = failSite.getLockManager();
+    lockManager.readLocks.entrySet().stream().forEach(entry ->
+      entry.getValue().stream().forEach(transaction ->
+          getTransaction(transaction).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT)));
+    lockManager.writeLock.entrySet().stream().forEach(entry ->
+            getTransaction(entry.getValue()).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
   }
 
   // TODO:
@@ -133,7 +141,7 @@ public class TransactionManager {
     Transaction transaction = getTransaction(operation);
     Integer value = operation.getWritesToValue();
     Integer var = operation.getVariable();
-    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1)))
+    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
     // if the transaction has already been blocked
     if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
@@ -187,6 +195,13 @@ public class TransactionManager {
   private Transaction getTransaction(Operation operation) {
     List<Transaction> transactions = allTransactions.stream()
         .filter(transaction -> transaction.getName().equals(operation.getTransaction()))
+        .collect(Collectors.toList());
+    return transactions.get(0);
+  }
+
+  private Transaction getTransaction(Integer transactionIndex) {
+    List<Transaction> transactions = allTransactions.stream()
+        .filter(transaction -> transaction.getName().equals(new StringBuilder("T" + transactionIndex)))
         .collect(Collectors.toList());
     return transactions.get(0);
   }

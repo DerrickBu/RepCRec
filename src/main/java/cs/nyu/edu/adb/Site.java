@@ -6,7 +6,7 @@ public class Site {
 
   private LockManager lockManager;
   private DataManager dataManager;
-  Boolean isDown;
+  public boolean isDown;
 
   public Site() {
     isDown = false;
