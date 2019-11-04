@@ -21,12 +21,4 @@ public class Site {
   public DataManager getDataManager() {
     return dataManager;
   }
-
-  public void setLockManager(LockManager lockManager) {
-    this.lockManager = lockManager;
-  }
-
-  public void setDataManager(DataManager dataManager) {
-    this.dataManager = dataManager;
-  }
 }

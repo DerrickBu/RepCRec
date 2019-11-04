@@ -13,8 +13,13 @@ public class DataManager {
     variables = new HashMap<>();
   }
 
-  public void insertData(Integer variable, Integer curvalue) {
+  public void insertValue(Integer variable, Integer curvalue) {
     variables.put(variable, new Pair<>(curvalue, curvalue));
+  }
+
+  public void updateValue(Integer variable, Integer updateValue) {
+    Integer committedValue = variables.get(variable).getKey();
+    variables.put(variable, new Pair<>(committedValue, updateValue));
   }
 
   public Integer getCurValue(Integer variable) {

@@ -17,10 +17,10 @@ public class TransactionManager {
     sites = Arrays.asList(new Site[11]);
     for(int i = 1; i <= 20; ++i) {
       if(i % 2 == 1) {
-        sites.get((1 + i) % 10).getDataManager().insertData(i, 10 * i);
+        sites.get((1 + i) % 10).getDataManager().insertValue(i, 10 * i);
       } else {
         for(int j = 1; j <= 10; ++j) {
-          sites.get(j).getDataManager().insertData(i, 10 * i);
+          sites.get(j).getDataManager().insertValue(i, 10 * i);
         }
       }
     }
@@ -68,16 +68,23 @@ public class TransactionManager {
 
   }
 
-  public boolean read(Operation operation) {
+  // TODO:
+  public void abort() {
+
+  }
+
+  private boolean read(Operation operation) {
 
     Transaction transaction = getTransaction(operation);
     Integer var = operation.getVariable();
 
+    // if the transaction has already been blocked
     if(blockedTransactions.contains(transaction.getName())) {
       transaction.waitingOperatons.add(operation);
       return false;
     }
 
+    // set current operation
     transaction.setCurrentOperation(operation);
 
     // TODO: support read only transaction read
@@ -94,7 +101,9 @@ public class TransactionManager {
       // If the variable is odd number
       if(var % 2 == 1) {
         Site site = sites.get((1 + var) % 10);
-        if(site.isDown) {
+        boolean canRead = site.getLockManager().canRead(var,
+            Integer.valueOf(operation.getTransaction().substring(1)));
+        if(site.isDown || !canRead) {
           blockedTransactions.add(transaction.getName());
           return false;
         } else {
@@ -102,7 +111,8 @@ public class TransactionManager {
         }
       } else {
         for(int i = 1; i <= 10; ++i) {
-          if(!sites.get(i).isDown) {
+          if(!sites.get(i).isDown && sites.get(i).getLockManager().canRead(var,
+              Integer.valueOf(operation.getTransaction().substring(1)))) {
             return readVar(sites.get(i), var, false);
           }
         }
@@ -111,19 +121,48 @@ public class TransactionManager {
     }
   }
 
-  public boolean readVar(Site site, Integer var, boolean readCommittedValue) {
+  private boolean readVar(Site site, Integer var, boolean readCommittedValue) {
     Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(var) :
         site.getDataManager().getCurValue(var);
     System.out.println("x" + var + ": " + val);
     return true;
   }
 
-  // TODO:
-  public void write() {
+  private boolean write(Operation operation) {
+    Transaction transaction = getTransaction(operation);
+    Integer value = operation.getWritesToValue();
+    Integer var = operation.getVariable();
+    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1)))
 
+    // if the transaction has already been blocked
+    if(blockedTransactions.contains(transaction.getName())) {
+      transaction.waitingOperatons.add(operation);
+      return false;
+    }
+
+    // set current operation
+    transaction.setCurrentOperation(operation);
+
+    // if it's odd number
+    if(var % 2 == 1) {
+      Site site = sites.get((1 + var) % 10);
+      if(site.isDown || !site.getLockManager().canWrite(var, transactionID)) {
+        blockedTransactions.add(transaction.getName());
+        return false;
+      }
+    } else {
+      List<Site> activeSites = sites.stream()
+          .filter(site -> !site.isDown && site.getLockManager().canWrite(var, transactionID))
+          .collect(Collectors.toList());
+      if(activeSites.size() != sites.size()) {
+        return false;
+      } else {
+        sites.stream().forEach(site -> site.getDataManager().updateValue(var, value));
+      }
+    }
   }
 
-  // TODO:
+  // TODO: Print all the variables and values in each site
   public void dump() {
 
   }
