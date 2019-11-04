@@ -64,6 +64,12 @@ public class TransactionManager {
 
   }
 
+  /**
+   * Fail a stie
+   * Mark the given site to be down
+   * Mark all the transactions holding lock to be 'SHOULD_BE_ABORTED'
+   * @param site given to fail
+   */
   public void fail(Integer site) {
     Site failSite = sites.get(site);
     failSite.isDown = true;

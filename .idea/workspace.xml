@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="825b987b-2414-4c43-9875-60d0d1712246" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Transaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Transaction.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -91,13 +92,17 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Transaction.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="98">
-              <caret line="11" column="34" selection-start-line="11" selection-start-column="34" selection-end-line="11" selection-end-column="34" />
+            <state relative-caret-position="290">
+              <caret line="16" column="27" lean-forward="true" selection-start-line="16" selection-start-column="27" selection-end-line="16" selection-end-column="27" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#572#573#0" expanded="true" />
+                <element signature="e#608#609#0" expanded="true" />
+                <element signature="e#643#644#0" expanded="true" />
+                <element signature="e#669#670#0" expanded="true" />
                 <element signature="e#359#360#0" expanded="true" />
                 <element signature="e#386#387#0" expanded="true" />
                 <element signature="e#195#196#0" expanded="true" />
@@ -122,14 +127,15 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="329">
-              <caret line="173" column="20" selection-start-line="173" selection-start-column="20" selection-end-line="173" selection-end-column="20" />
+            <state relative-caret-position="226">
+              <caret line="70" column="30" selection-start-line="70" selection-start-column="30" selection-end-line="70" selection-end-column="30" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#5882#5883#0" expanded="true" />
+                <element signature="e#5978#5979#0" expanded="true" />
+                <element signature="e#6000#6001#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -160,11 +166,11 @@
         <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/MainApplication.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/IOUtils.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionStatus.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Transaction.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/DataManager.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Site.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/LockManager.java" />
         <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Transaction.java" />
       </list>
     </option>
   </component>
@@ -272,18 +278,18 @@
       <option name="presentableId" value="Default" />
       <updated>1572619916631</updated>
       <workItem from="1572619918254" duration="6428000" />
-      <workItem from="1572648673312" duration="13178000" />
+      <workItem from="1572648673312" duration="13900000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="19606000" />
+    <option name="totallyTimeSpent" value="20328000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1680" height="1050" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.16870415" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16870415" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -298,7 +304,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Build" order="7" weight="0.28422153" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.29153606" />
+      <window_info anchor="bottom" id="Terminal" order="8" visible="true" weight="0.2675026" />
       <window_info anchor="bottom" id="Docker" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Database Changes" order="11" />
@@ -360,26 +366,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Transaction.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="98">
-          <caret line="11" column="34" selection-start-line="11" selection-start-column="34" selection-end-line="11" selection-end-column="34" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#359#360#0" expanded="true" />
-            <element signature="e#386#387#0" expanded="true" />
-            <element signature="e#195#196#0" expanded="true" />
-            <element signature="e#216#217#0" expanded="true" />
-            <element signature="e#269#270#0" expanded="true" />
-            <element signature="e#303#304#0" expanded="true" />
-            <element signature="e#341#342#0" expanded="true" />
-            <element signature="e#367#368#0" expanded="true" />
-            <element signature="e#323#324#0" expanded="true" />
-            <element signature="e#356#357#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Site.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="103">
@@ -412,11 +398,36 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/TransactionManager.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="329">
-          <caret line="173" column="20" selection-start-line="173" selection-start-column="20" selection-end-line="173" selection-end-column="20" />
+        <state relative-caret-position="226">
+          <caret line="70" column="30" selection-start-line="70" selection-start-column="30" selection-end-line="70" selection-end-column="30" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#5882#5883#0" expanded="true" />
+            <element signature="e#5978#5979#0" expanded="true" />
+            <element signature="e#6000#6001#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cs/nyu/edu/adb/Transaction.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="290">
+          <caret line="16" column="27" lean-forward="true" selection-start-line="16" selection-start-column="27" selection-end-line="16" selection-end-column="27" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#572#573#0" expanded="true" />
+            <element signature="e#608#609#0" expanded="true" />
+            <element signature="e#643#644#0" expanded="true" />
+            <element signature="e#669#670#0" expanded="true" />
+            <element signature="e#359#360#0" expanded="true" />
+            <element signature="e#386#387#0" expanded="true" />
+            <element signature="e#195#196#0" expanded="true" />
+            <element signature="e#216#217#0" expanded="true" />
+            <element signature="e#269#270#0" expanded="true" />
+            <element signature="e#303#304#0" expanded="true" />
+            <element signature="e#341#342#0" expanded="true" />
+            <element signature="e#367#368#0" expanded="true" />
+            <element signature="e#323#324#0" expanded="true" />
+            <element signature="e#356#357#0" expanded="true" />
           </folding>
         </state>
       </provider>
