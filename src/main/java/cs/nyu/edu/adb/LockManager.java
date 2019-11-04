@@ -1,31 +1,39 @@
 package cs.nyu.edu.adb;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class LockManager {
 
-  Map<Integer, List<String>> readLocks;
+  // variable -> transaction index
+  Map<Integer, List<Integer>> readLocks;
   Map<Integer, Integer> writeLock;
 
-  // TODO:
-  public boolean canRead(Operation operation) {
-    return false;
+  public boolean canRead(Integer variable, Integer transaction) {
+    if(!writeLock.containsKey(variable) || writeLock.get(variable) == transaction) {
+      if(!readLocks.containsKey(variable)) {
+        readLocks.put(variable, Arrays.asList(transaction));
+      } else if(!readLocks.get(variable).contains(transaction)) {
+        readLocks.get(variable).add(transaction);
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  // TODO:
-  public boolean canWrite(Operation operation) {
-    return false;
-  }
-
-  // TODO:
-  public void read() {
-
-  }
-
-  // TODO:
-  public void write() {
-
+  public boolean canWrite(Integer variable, Integer transaction) {
+    if(readLocks.containsKey(variable)
+        && readLocks.get(variable).size() == 1
+        && readLocks.get(variable).contains(transaction) ||
+        (!readLocks.containsKey(variable) && !writeLock.containsKey(variable))) {
+      writeLock.put(variable, transaction);
+      return true;
+    } else {
+      return false;
+    }
   }
 
 }

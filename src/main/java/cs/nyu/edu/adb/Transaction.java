@@ -4,12 +4,42 @@ import java.util.List;
 
 public class Transaction {
 
-  public String name;
-  Operation currentOperation;
-  TransactionStatus transactionStatus;
+  private String name;
+  private Operation currentOperation;
+  private TransactionStatus transactionStatus;
+  private boolean isReadOnly;
 
-  public Transaction() {
+  public Transaction(String name, boolean isReadOnly) {
     transactionStatus = TransactionStatus.ACTIVE;
+    this.name = name;
+    this.isReadOnly = isReadOnly;
   }
 
+  public boolean isReadOnly() {
+    return isReadOnly;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public TransactionStatus getTransactionStatus() {
+    return transactionStatus;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public void setTransactionStatus(TransactionStatus transactionStatus) {
+    this.transactionStatus = transactionStatus;
+  }
+
+  public Operation getCurrentOperation() {
+    return currentOperation;
+  }
+
+  public void setCurrentOperation(Operation currentOperation) {
+    this.currentOperation = currentOperation;
+  }
 }
