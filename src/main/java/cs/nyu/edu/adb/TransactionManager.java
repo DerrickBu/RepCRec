@@ -79,7 +79,7 @@ public class TransactionManager {
     Integer var = operation.getVariable();
 
     // if the transaction has already been blocked
-    if(blockedTransactions.contains(transaction.getName())) {
+    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
       transaction.waitingOperatons.add(operation);
       return false;
     }
@@ -104,7 +104,7 @@ public class TransactionManager {
         boolean canRead = site.getLockManager().canRead(var,
             Integer.valueOf(operation.getTransaction().substring(1)));
         if(site.isDown || !canRead) {
-          blockedTransactions.add(transaction.getName());
+          blockTransaction(transaction);
           return false;
         } else {
           return readVar(site, var, false);
@@ -116,6 +116,7 @@ public class TransactionManager {
             return readVar(sites.get(i), var, false);
           }
         }
+        blockTransaction(transaction);
         return false;
       }
     }
@@ -135,7 +136,7 @@ public class TransactionManager {
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1)))
 
     // if the transaction has already been blocked
-    if(blockedTransactions.contains(transaction.getName())) {
+    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
       transaction.waitingOperatons.add(operation);
       return false;
     }
@@ -147,7 +148,7 @@ public class TransactionManager {
     if(var % 2 == 1) {
       Site site = sites.get((1 + var) % 10);
       if(site.isDown || !site.getLockManager().canWrite(var, transactionID)) {
-        blockedTransactions.add(transaction.getName());
+        blockTransaction(transaction);
         return false;
       }
     } else {
@@ -155,11 +156,17 @@ public class TransactionManager {
           .filter(site -> !site.isDown && site.getLockManager().canWrite(var, transactionID))
           .collect(Collectors.toList());
       if(activeSites.size() != sites.size()) {
+        blockTransaction(transaction);
         return false;
       } else {
         sites.stream().forEach(site -> site.getDataManager().updateValue(var, value));
       }
     }
+  }
+
+  private void blockTransaction(Transaction transaction) {
+    transaction.setTransactionStatus(TransactionStatus.IS_BLOCKED);
+    blockedTransactions.add(transaction.getName());
   }
 
   // TODO: Print all the variables and values in each site
