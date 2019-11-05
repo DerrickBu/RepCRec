@@ -1,5 +1,6 @@
 package cs.nyu.edu.adb;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -36,45 +37,71 @@ public class TransactionManager {
 
   public void run() {
     allOperations.forEach(operation -> {
-      String op = operation.getName();
-      switch (op) {
-        case IOUtils.BEGIN:
-          allTransactions.add(initTransaction(operation, false));
-          break;
-        case IOUtils.BEGIN_RO:
-          allTransactions.add(initTransaction(operation, true));
-          break;
-        case IOUtils.DUMP:
-          break;
-        case IOUtils.END:
-          break;
-        case IOUtils.FAIL:
-          fail(operation.getSite());
-          break;
-        case IOUtils.READ:
-          break;
-        case IOUtils.RECOVER:
-          break;
-        case IOUtils.WRITE:
-          break;
-          default:
-
-      }
+      executeOperation(operation);
     });
+  }
+
+  public void executeOperation(Operation operation) {
+    String op = operation.getName();
+    switch (op) {
+      case IOUtils.BEGIN:
+        allTransactions.add(initTransaction(operation, false));
+        break;
+      case IOUtils.BEGIN_RO:
+        allTransactions.add(initTransaction(operation, true));
+        break;
+      case IOUtils.DUMP:
+        break;
+      case IOUtils.END:
+        break;
+      case IOUtils.FAIL:
+        fail(operation.getSite());
+        break;
+      case IOUtils.READ:
+        break;
+      case IOUtils.RECOVER:
+        break;
+      case IOUtils.WRITE:
+        break;
+      default:
+
+    }
   }
 
   public Transaction initTransaction(Operation operation, boolean isReadOnly) {
     return new Transaction(operation.getTransaction(), isReadOnly);
   }
 
-  // TODO: Commit values, release read and write locks, execute operations being blocked by the locks
   public void commit(Operation operation) {
-    Transaction transaction = getTransaction(operation);
+    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
+    List<Integer> holdVariables = new ArrayList<>();
     // Iterate all sites and find variables which transaction holds lock on, and remove locks.
     for (int i = 1; i <= 10; ++i) {
       Site site = sites.get(i);
+
+      // Add all variables holding by this transaction to a list
+      site.getLockManager().readLocks.forEach((key, value) -> {
+        if(value.contains(transactionID)) {
+          holdVariables.add(key);
+        }
+      });
+      site.getLockManager().writeLock.forEach((key, value) -> {
+        if(value == transactionID) {
+          holdVariables.add(key);
+        }
+      });
+
+      //Remove all the locks
+      site.getLockManager().readLocks.forEach((key, value) -> {
+        value.remove(transactionID);
+      });
+      site.getLockManager()
+          .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
     }
+    holdVariables.stream().forEach(holdVariable -> {
+
+    });
   }
 
   /**
