@@ -72,7 +72,15 @@ public class TransactionManager {
     return new Transaction(operation.getTransaction(), isReadOnly);
   }
 
+  public void abort(Operation operation) {
+    commitOrAbort(operation, false);
+  }
+
   public void commit(Operation operation) {
+    commitOrAbort(operation, true);
+  }
+
+  private void commitOrAbort(Operation operation, boolean shouldCommit) {
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
     List<Integer> holdVariables = new ArrayList<>();
@@ -86,21 +94,50 @@ public class TransactionManager {
           holdVariables.add(key);
         }
       });
-      site.getLockManager().writeLock.forEach((key, value) -> {
-        if(value == transactionID) {
-          holdVariables.add(key);
-        }
-      });
 
-      //Remove all the locks
-      site.getLockManager().readLocks.forEach((key, value) -> {
-        value.remove(transactionID);
-      });
+      if (shouldCommit) {
+        // Update committed to current values
+        site.getLockManager()
+            .writeLock
+            .forEach(
+                (key, value) -> {
+                  if (value == transactionID) {
+                    holdVariables.add(key);
+                    site.getDataManager().updateToCurValue(key);
+                  }
+                });
+      } else {
+        // Revert current value to committed value
+        site.getLockManager()
+            .writeLock
+            .forEach(
+                (key, value) -> {
+                  if (value == transactionID) {
+                    holdVariables.add(key);
+                    site.getDataManager().updateToCommittedValue(key);
+                  }
+                });
+      }
+
+      // Release all the locks
+      site.getLockManager().readLocks.forEach((key, value) -> value.remove(transactionID));
       site.getLockManager()
           .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
     }
     holdVariables.stream().forEach(holdVariable -> {
-
+      if(waitingOperations.containsKey(holdVariable)) {
+        if(operation.getName().equals(IOUtils.READ)) {
+          while(read(waitingOperations.get(holdVariable).get(0))) {
+            waitingOperations.get(holdVariable).remove(0);
+          }
+        } else if(operation.getName().equals(IOUtils.WRITE)) {
+          while(write(waitingOperations.get(holdVariable).get(0))) {
+            waitingOperations.get(holdVariable).remove(0);
+          }
+        } else {
+          throw new IllegalArgumentException("This operation should not be blocked");
+        }
+      }
     });
   }
 
@@ -123,10 +160,16 @@ public class TransactionManager {
 
     lockManager.writeLock.forEach((key, value) ->
             getTransaction(value).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
+
+    // erase all the locks
+    lockManager.readLocks.clear();
+    lockManager.writeLock.clear();
   }
 
-  // TODO:
-  public void abort() {
+
+  public void recover(Integer site) {
+    Site failSite = sites.get(site);
+    failSite.isDown = false;
 
   }
 
@@ -149,10 +192,10 @@ public class TransactionManager {
     if(transaction.isReadOnly()) {
       if(var % 2 == 1) {
         Site site = sites.get((1 + var) % 10);
-        return readVar(site, var, true);
+        return readVar(site, var, true, transaction);
       } else {
         // TODO: Not sure about the logic here
-        return readVar(sites.get(0), var, true);
+        return readVar(sites.get(0), var, true, transaction);
       }
 
     } else {
@@ -167,13 +210,13 @@ public class TransactionManager {
           blockTransaction(transaction);
           return false;
         } else {
-          return readVar(site, var, false);
+          return readVar(site, var, false, transaction);
         }
       } else {
         for(int i = 1; i <= 10; ++i) {
           if(!sites.get(i).isDown && sites.get(i).getLockManager()
               .canRead(var, transactionID)) {
-            return readVar(sites.get(i), var, false);
+            return readVar(sites.get(i), var, false, transaction);
           }
         }
         for (int i = 1; i <= 10; i++) {
@@ -187,10 +230,15 @@ public class TransactionManager {
     }
   }
 
-  private boolean readVar(Site site, Integer var, boolean readCommittedValue) {
+  private boolean readVar(Site site,
+      Integer var,
+      boolean readCommittedValue,
+      Transaction transaction) {
     Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(var) :
         site.getDataManager().getCurValue(var);
-    System.out.println("x" + var + ": " + val);
+    if (transaction.getTransactionStatus() == TransactionStatus.ACTIVE) {
+      System.out.println("x" + var + ": " + val);
+    }
     return true;
   }
 
@@ -309,12 +357,16 @@ public class TransactionManager {
 
   // TODO: Print all the variables and values in each site
   public void dump() {
-
-  }
-
-  // TODO:
-  public void recover() {
-
+    for (int i = 1; i <= 10; i++) {
+      StringBuilder stringBuilder = new StringBuilder();
+      stringBuilder.append("site " + i + " - ");
+      Map<Integer, Integer> sortedVariables = sites.get(i)
+          .getDataManager()
+          .getAllSortedCommittedValues();
+      sortedVariables.forEach((key, value) ->
+          stringBuilder.append(key + ": " + value + ", "));
+      System.out.println(stringBuilder);
+    }
   }
 
   // TODO:
