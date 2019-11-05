@@ -23,12 +23,15 @@ public class LockManager {
     }
   }
 
+  public void write(Integer variable, Integer transaction) {
+    writeLock.put(variable, transaction);
+  }
+
   public boolean canWrite(Integer variable, Integer transaction) {
     if(readLocks.containsKey(variable)
         && readLocks.get(variable).size() == 1
         && readLocks.get(variable).contains(transaction) ||
         (!readLocks.containsKey(variable) && !writeLock.containsKey(variable))) {
-      writeLock.put(variable, transaction);
       return true;
     } else {
       return false;
