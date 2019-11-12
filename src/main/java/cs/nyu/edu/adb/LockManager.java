@@ -1,6 +1,7 @@
 package cs.nyu.edu.adb;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,6 +10,11 @@ public class LockManager {
   // variable -> transaction index
   public Map<Integer, List<Integer>> readLocks;
   public Map<Integer, Integer> writeLock;
+
+  public LockManager() {
+    readLocks = new HashMap<>();
+    writeLock = new HashMap<>();
+  }
 
   public boolean canRead(Integer variable, Integer transaction) {
     if(!writeLock.containsKey(variable) || writeLock.get(variable) == transaction) {

@@ -23,7 +23,10 @@ public class TransactionManager {
     waitingOperations = new HashMap<>();
     waitsForGraph = new HashMap<>();
     this.allOperations = allOperations;
-    sites = Arrays.asList(new Site[11]);
+    sites = new ArrayList<>();
+    for (int i = 0; i < 11; i++) {
+      sites.add(new Site());
+    }
     for(int i = 1; i <= 20; ++i) {
       if(i % 2 == 1) {
         sites.get((1 + i) % 10).getDataManager().insertValue(i, 10 * i);

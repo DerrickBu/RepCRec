@@ -1,7 +1,5 @@
 package cs.nyu.edu.adb;
 
-import java.util.concurrent.locks.Lock;
-
 public class Site {
 
   private LockManager lockManager;
