@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+// TODO: Write comments for every method
 public class TransactionManager {
 
   public List<String> blockedTransactions;
@@ -382,8 +383,6 @@ public class TransactionManager {
     blockedTransactions.add(transaction.getName());
   }
 
-
-  // TODO: Print all the variables and values in each site
   public void dump() {
     for (int i = 1; i <= 10; i++) {
       StringBuilder stringBuilder = new StringBuilder();
@@ -392,7 +391,7 @@ public class TransactionManager {
           .getDataManager()
           .getAllSortedCommittedValues();
       sortedVariables.forEach((key, value) ->
-          stringBuilder.append(key + ": " + value + ", "));
+          stringBuilder.append("x" + key + ": " + value + ", "));
       System.out.println(stringBuilder);
     }
   }
