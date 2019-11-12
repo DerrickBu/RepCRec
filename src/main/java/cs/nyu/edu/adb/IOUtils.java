@@ -38,12 +38,12 @@ public class IOUtils {
         } else if(seperateStrings[0].equals(READ)) {
           return new Operation.Builder(seperateStrings[0])
               .transaction(seperateStrings[1])
-              .variable(Integer.valueOf(seperateStrings[2]))
+              .variable(Integer.valueOf(seperateStrings[2].substring(1)))
               .build();
         } else if(seperateStrings[0].equals(WRITE)) {
           return new Operation.Builder(seperateStrings[0])
               .transaction(seperateStrings[1])
-              .variable(Integer.valueOf(seperateStrings[2]))
+              .variable(Integer.valueOf(seperateStrings[2].substring(1)))
               .writesToValue(Integer.valueOf(seperateStrings[3]))
               .build();
         } else if(seperateStrings[0].equals(FAIL)
