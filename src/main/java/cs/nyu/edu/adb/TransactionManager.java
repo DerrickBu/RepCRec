@@ -68,11 +68,11 @@ public class TransactionManager {
         break;
       case IOUtils.READ:
         if(read(operation)) {
-          System.out.println(String.format("Transaction {} can read variable {}",
-              operation.getTransaction(), operation.getVariable()));
+          System.out.println(String.format("Transaction %s can read variable %s",
+              operation.getTransaction(), operation.getVariable().toString()));
         } else {
-          System.out.println(String.format("Transaction {} can not read variable {}",
-              operation.getTransaction(), operation.getVariable()));
+          System.out.println(String.format("Transaction %s cannot read variable %s",
+              operation.getTransaction(), operation.getVariable().toString()));
         }
         break;
       case IOUtils.RECOVER:
@@ -80,11 +80,15 @@ public class TransactionManager {
         break;
       case IOUtils.WRITE:
         if(write(operation)) {
-          System.out.println(String.format("Transaction {} can write variable {} to new value {}",
-              operation.getTransaction(), operation.getVariable(), operation.getWritesToValue()));
+          System.out.println(String.format("Transaction %s can write variable %s to new value %s",
+              operation.getTransaction(),
+              operation.getVariable().toString(),
+              operation.getWritesToValue().toString()));
         } else {
-          System.out.println(String.format("Transaction {} can not write variable {} to new value {}",
-              operation.getTransaction(), operation.getVariable(), operation.getWritesToValue()));
+          System.out.println(String.format("Transaction %s cannot write variable %s to new value %s",
+              operation.getTransaction(),
+              operation.getVariable().toString(),
+              operation.getWritesToValue().toString()));
         }
         break;
       default:
@@ -219,7 +223,7 @@ public class TransactionManager {
         return readVar(site, var, true, transaction);
       } else {
         // TODO: Not sure about the logic here
-        return readVar(sites.get(0), var, true, transaction);
+        return readVar(sites.get(1), var, true, transaction);
       }
 
     } else {
@@ -306,7 +310,7 @@ public class TransactionManager {
         blockTransaction(transaction);
         return false;
       } else {
-        sites.stream().forEach(site -> {
+        sites.stream().skip(1).forEach(site -> {
           site.getLockManager().write(var, transactionID);
           site.getDataManager().updateValue(var, value);
         });
