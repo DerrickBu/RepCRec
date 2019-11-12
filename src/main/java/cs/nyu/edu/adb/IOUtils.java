@@ -27,13 +27,15 @@ public class IOUtils {
   public void parseFile() {
     try(Stream<String> stream = Files.lines(Paths.get(fileName))) {
       this.operations = stream.map(line -> {
-        String seperateStrings[] = line.trim().split("\\(|\\)|,");
+        String[] seperateStrings = line.trim().split("\\(|\\)|,");
         if(seperateStrings[0].equals(BEGIN)
             || seperateStrings[0].equals(END)
-            || seperateStrings[0].equals(BEGIN_RO)
-            || seperateStrings[0].equals(DUMP)) {
+            || seperateStrings[0].equals(BEGIN_RO)) {
           return new Operation.Builder(seperateStrings[0])
               .transaction(seperateStrings[1])
+              .build();
+        } else if(seperateStrings[0].equals(DUMP)){
+          return new Operation.Builder(seperateStrings[0])
               .build();
         } else if(seperateStrings[0].equals(READ)) {
           return new Operation.Builder(seperateStrings[0])
