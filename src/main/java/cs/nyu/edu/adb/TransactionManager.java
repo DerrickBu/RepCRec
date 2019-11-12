@@ -53,20 +53,42 @@ public class TransactionManager {
         allTransactions.add(initTransaction(operation, true));
         break;
       case IOUtils.DUMP:
+        dump();
         break;
       case IOUtils.END:
+        if(getTransaction(operation).getTransactionStatus()
+            == TransactionStatus.SHOULD_BE_ABORT) {
+          abort(operation);
+        } else {
+          commit(operation);
+        }
         break;
       case IOUtils.FAIL:
         fail(operation.getSite());
         break;
       case IOUtils.READ:
+        if(read(operation)) {
+          System.out.println(String.format("Transaction {} can read variable {}",
+              operation.getTransaction(), operation.getVariable()));
+        } else {
+          System.out.println(String.format("Transaction {} can not read variable {}",
+              operation.getTransaction(), operation.getVariable()));
+        }
         break;
       case IOUtils.RECOVER:
+        recover(operation.getSite());
         break;
       case IOUtils.WRITE:
+        if(write(operation)) {
+          System.out.println(String.format("Transaction {} can write variable {} to new value {}",
+              operation.getTransaction(), operation.getVariable(), operation.getWritesToValue()));
+        } else {
+          System.out.println(String.format("Transaction {} can not write variable {} to new value {}",
+              operation.getTransaction(), operation.getVariable(), operation.getWritesToValue()));
+        }
         break;
       default:
-
+        throw new UnsupportedOperationException("This opetation is not being supported");
     }
   }
 
