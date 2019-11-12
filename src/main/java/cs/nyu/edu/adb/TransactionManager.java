@@ -24,6 +24,7 @@ public class TransactionManager {
   public TransactionManager(List<Operation> allOperations) {
     // Initialize operations and sites
     allTransactions = new ArrayList<>();
+    blockedTransactions = new ArrayList<>();
     waitingOperations = new HashMap<>();
     waitsForGraph = new HashMap<>();
     waitingSites = new HashMap<>();
@@ -211,18 +212,21 @@ public class TransactionManager {
   public void recover(Integer site) {
     Site failSite = sites.get(site);
     failSite.isDown = false;
+    for(Map.Entry<Integer, List<Integer>> entry : waitingSites.entrySet()) {
+      List<Integer> sites = entry.getValue();
+      if (sites.contains(site)) {
+        sites.remove(site);
+      }
+    }
     waitingSites.forEach((key, value) -> {
-      if(value.contains(site)) {
-        value.remove(site);
-        if(value.size() == 0) {
-          Operation operation = getTransaction(key).getCurrentOperation();
-          if(operation.getName().equals(IOUtils.READ)) {
-            read(operation);
-          } else if(operation.getName().equals(IOUtils.WRITE)) {
-            write(operation);
-          } else {
-            throw new IllegalArgumentException("This operation should not be blocked");
-          }
+      if(value.size() == 0) {
+        Operation operation = getTransaction(key).getCurrentOperation();
+        if(operation.getName().equals(IOUtils.READ)) {
+          read(operation);
+        } else if(operation.getName().equals(IOUtils.WRITE)) {
+          write(operation);
+        } else {
+          throw new IllegalArgumentException("This operation should not be blocked");
         }
       }
     });
@@ -235,10 +239,10 @@ public class TransactionManager {
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
     // if the transaction has already been blocked
-    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
-      transaction.waitingOperatons.add(operation);
-      return false;
-    }
+//    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
+//      transaction.waitingOperatons.add(operation);
+//      return false;
+//    }
 
     // set current operation
     transaction.setCurrentOperation(operation);
@@ -293,7 +297,8 @@ public class TransactionManager {
     if(waitingSites.containsKey(transactionID)) {
       waitingSites.get(transactionID).add(site);
     } else {
-      waitingSites.put(transactionID, Arrays.asList(site));
+      waitingSites.put(transactionID, new ArrayList<>());
+      waitingSites.get(transactionID).add(site);
     }
   }
 
@@ -316,10 +321,10 @@ public class TransactionManager {
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
     // if the transaction has already been blocked
-    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
-      transaction.waitingOperatons.add(operation);
-      return false;
-    }
+//    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
+//      transaction.waitingOperatons.add(operation);
+//      return false;
+//    }
 
     // set current operation
     transaction.setCurrentOperation(operation);
@@ -375,7 +380,8 @@ public class TransactionManager {
       if (waitingOperations.containsKey(var)) {
         waitingOperations.get(var).add(operation);
       } else {
-        waitingOperations.put(var, Arrays.asList(operation));
+        waitingOperations.put(var, new ArrayList<>());
+        waitingOperations.get(var).add(operation);
       }
       if (site.getLockManager().readLocks.containsKey(var)) {
         site.getLockManager().readLocks.get(var).stream()
@@ -385,7 +391,8 @@ public class TransactionManager {
                     if (waitsForGraph.containsKey(transactionID)) {
                       waitsForGraph.get(transactionID).add(t);
                     } else {
-                      waitsForGraph.put(transactionID, Arrays.asList(t));
+                      waitsForGraph.put(transactionID, new ArrayList<>());
+                      waitsForGraph.get(transactionID).add(t);
                     }
                   }
                 });
@@ -403,7 +410,8 @@ public class TransactionManager {
       if (waitingOperations.containsKey(var)) {
         waitingOperations.get(var).add(operation);
       } else {
-        waitingOperations.put(var, Arrays.asList(operation));
+        waitingOperations.put(var, new ArrayList<>());
+        waitingOperations.get(var).add(operation);
       }
       checkWriteLocks(site, var, transactionID);
     }
@@ -418,14 +426,15 @@ public class TransactionManager {
         if (waitsForGraph.containsKey(transactionID)) {
           waitsForGraph.get(transactionID).add(t);
         } else {
-          waitsForGraph.put(transactionID, Arrays.asList(t));
+          waitsForGraph.put(transactionID, new ArrayList<>());
+          waitsForGraph.get(transactionID).add(t);
         }
       }
     }
   }
 
   private void blockTransaction(Transaction transaction) {
-    transaction.setTransactionStatus(TransactionStatus.IS_BLOCKED);
+//    transaction.setTransactionStatus(TransactionStatus.IS_BLOCKED);
     blockedTransactions.add(transaction.getName());
   }
 
@@ -456,7 +465,8 @@ public class TransactionManager {
 
   private Transaction getTransaction(Integer transactionIndex) {
     List<Transaction> transactions = allTransactions.stream()
-        .filter(transaction -> transaction.getName().equals(new StringBuilder("T" + transactionIndex)))
+        .filter(transaction -> transaction.getName().equals(
+            new StringBuilder("T" + transactionIndex).toString()))
         .collect(Collectors.toList());
     return transactions.get(0);
   }

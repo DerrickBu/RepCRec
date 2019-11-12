@@ -1,5 +1,6 @@
 package cs.nyu.edu.adb;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,8 @@ public class LockManager {
   public boolean canRead(Integer variable, Integer transaction) {
     if(!writeLock.containsKey(variable) || writeLock.get(variable) == transaction) {
       if(!readLocks.containsKey(variable)) {
-        readLocks.put(variable, Arrays.asList(transaction));
+        readLocks.put(variable, new ArrayList<>());
+        readLocks.get(variable).add(transaction);
       } else if(!readLocks.get(variable).contains(transaction)) {
         readLocks.get(variable).add(transaction);
       }
