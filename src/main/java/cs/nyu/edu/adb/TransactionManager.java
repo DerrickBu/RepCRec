@@ -20,6 +20,7 @@ public class TransactionManager {
 
   public TransactionManager(List<Operation> allOperations) {
     // Initialize operations and sites
+    allTransactions = new ArrayList<>();
     waitingOperations = new HashMap<>();
     waitsForGraph = new HashMap<>();
     this.allOperations = allOperations;
@@ -39,9 +40,7 @@ public class TransactionManager {
   }
 
   public void run() {
-    allOperations.forEach(operation -> {
-      executeOperation(operation);
-    });
+    allOperations.forEach(operation -> executeOperation(operation));
   }
 
   public void executeOperation(Operation operation) {
