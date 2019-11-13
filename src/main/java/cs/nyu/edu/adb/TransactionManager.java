@@ -1,7 +1,6 @@
 package cs.nyu.edu.adb;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +145,9 @@ public class TransactionManager {
             .forEach(
                 (key, value) -> {
                   if (value == transactionID) {
-                    holdVariables.add(key);
+                    if (!holdVariables.contains(key)) {
+                      holdVariables.add(key);
+                    }
                     site.getDataManager().updateToCommittedValue(key);
                   }
                 });
@@ -156,6 +157,7 @@ public class TransactionManager {
       site.getLockManager().readLocks.forEach((key, value) -> value.remove(transactionID));
       site.getLockManager()
           .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
+      site.getLockManager().readLocks.entrySet().removeIf(entry -> entry.getValue().size() == 0);
     }
     holdVariables.stream().forEach(holdVariable -> {
       if(waitingOperations.containsKey(holdVariable)) {
@@ -195,13 +197,22 @@ public class TransactionManager {
 
     // Mark all transactions which have accessed items in this site 'SHOULD_BE_ABORTED'
     LockManager lockManager = failSite.getLockManager();
+    DataManager dataManager = failSite.getDataManager();
 
-    lockManager.readLocks.forEach((key, value) ->
+    List<Integer> holdVariables = new ArrayList<>();
+
+    lockManager.readLocks.forEach((key, value) -> {
+      holdVariables.add(key);
       value.forEach(transaction ->
-          getTransaction(transaction).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT)));
+          getTransaction(transaction).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
+    });
 
-    lockManager.writeLock.forEach((key, value) ->
-            getTransaction(value).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
+    lockManager.writeLock.forEach((key, value) -> {
+      holdVariables.add(key);
+      getTransaction(value).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT);
+    });
+
+    holdVariables.forEach(dataManager::updateToCommittedValue);
 
     // erase all the locks
     lockManager.readLocks.clear();
@@ -408,7 +419,9 @@ public class TransactionManager {
       Integer transactionID) {
     if (!site.isDown) {
       if (waitingOperations.containsKey(var)) {
-        waitingOperations.get(var).add(operation);
+        if (!waitingOperations.get(var).contains(operation)) {
+          waitingOperations.get(var).add(operation);
+        }
       } else {
         waitingOperations.put(var, new ArrayList<>());
         waitingOperations.get(var).add(operation);
