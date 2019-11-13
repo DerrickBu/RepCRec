@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class TransactionManager {
 
 //  public List<String> blockedTransactions;
-  Integer currentTime;
+  private Integer currentTime;
   public List<Transaction> allTransactions;
   public List<Site> sites;
   public List<Operation> allOperations;
@@ -69,7 +69,8 @@ public class TransactionManager {
         if(getTransaction(operation).getTransactionStatus()
             == TransactionStatus.SHOULD_BE_ABORT) {
           abort(transactionID);
-        } else {
+        } else if(getTransaction(operation).getTransactionStatus()
+            == TransactionStatus.ACTIVE){
           commit(transactionID);
         }
         break;
@@ -120,6 +121,16 @@ public class TransactionManager {
 
   private void commitOrAbort(Integer transactionID, boolean shouldCommit) {
 
+    // Remove this transaction in waitsForGraph
+    for(Map.Entry<Integer, List<Integer>> entry : waitsForGraph.entrySet()) {
+      if(entry.getValue().contains(transactionID)) {
+        entry.getValue().remove(transactionID);
+      }
+      if(entry.getKey().equals(transactionID)) {
+        waitsForGraph.remove(entry.getKey());
+      }
+    }
+
     List<Integer> holdVariables = new ArrayList<>();
     // Iterate all sites and find variables which transaction holds lock on, and remove locks.
     for (int i = 1; i <= 10; ++i) {
@@ -144,7 +155,7 @@ public class TransactionManager {
             .writeLock
             .forEach(
                 (key, value) -> {
-                  if (value == transactionID) {
+                  if (value.equals(transactionID)) {
                     holdVariables.add(key);
                     site.getDataManager().updateToCurValue(key);
                   }
@@ -155,7 +166,7 @@ public class TransactionManager {
             .writeLock
             .forEach(
                 (key, value) -> {
-                  if (value == transactionID) {
+                  if (value.equals(transactionID)) {
                     if (!holdVariables.contains(key)) {
                       holdVariables.add(key);
                     }
@@ -170,6 +181,8 @@ public class TransactionManager {
           .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
       site.getLockManager().readLocks.entrySet().removeIf(entry -> entry.getValue().size() == 0);
     }
+
+    // Wake waiting operations based on released variables held by this transaction before
     holdVariables.stream()
         .forEach(
             holdVariable -> {
@@ -494,7 +507,7 @@ public class TransactionManager {
         }
       }
       abort(youngestTransaction);
-      transaction.setTransactionStatus(TransactionStatus.IS_FINISHED);
+      getTransaction(youngestTransaction).setTransactionStatus(TransactionStatus.IS_FINISHED);
     }
   }
 
