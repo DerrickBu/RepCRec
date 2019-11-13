@@ -27,7 +27,6 @@ public class TransactionManager {
     currentTime = 0;
     visitedTransactions = new ArrayList<>();
     allTransactions = new ArrayList<>();
-//    blockedTransactions = new ArrayList<>();
     waitingOperations = new HashMap<>();
     waitsForGraph = new HashMap<>();
     waitingSites = new HashMap<>();
@@ -48,7 +47,7 @@ public class TransactionManager {
   }
 
   public void run() {
-    allOperations.forEach(operation -> executeOperation(operation));
+    allOperations.forEach(this::executeOperation);
   }
 
   public void executeOperation(Operation operation) {
@@ -123,9 +122,7 @@ public class TransactionManager {
 
     // Remove this transaction in waitsForGraph
     for(Map.Entry<Integer, List<Integer>> entry : waitsForGraph.entrySet()) {
-      if(entry.getValue().contains(transactionID)) {
-        entry.getValue().remove(transactionID);
-      }
+      entry.getValue().remove(transactionID);
       if(entry.getKey().equals(transactionID)) {
         waitsForGraph.remove(entry.getKey());
       }
@@ -311,7 +308,6 @@ public class TransactionManager {
           } else {
             addToWaitingSiteList(transactionID, (1 + var) % 10);
           }
-//          blockTransaction(transaction);
           return false;
         } else {
           return readVariable(site, var, false, transaction);
@@ -331,7 +327,6 @@ public class TransactionManager {
             addToWaitingSiteList(transactionID, i);
           }
         }
-//        blockTransaction(transaction);
         return false;
       }
     }
@@ -377,7 +372,6 @@ public class TransactionManager {
         } else {
           addToWaitingSiteList(transactionID, (1 + var) % 10);
         }
-//        blockTransaction(transaction);
         return false;
       } else {
         site.getLockManager().write(var, transactionID);
@@ -399,7 +393,6 @@ public class TransactionManager {
         }
       }
       if(!flag) {
-//        blockTransaction(transaction);
         return false;
       } else {
         sites.stream().skip(1).forEach(site -> {
@@ -424,10 +417,10 @@ public class TransactionManager {
         waitingOperations.get(var).add(operation);
       }
       if (site.getLockManager().readLocks.containsKey(var)) {
-        site.getLockManager().readLocks.get(var).stream()
+        site.getLockManager().readLocks.get(var)
             .forEach(
                 t -> {
-                  if (t != transactionID) {
+                  if (!t.equals(transactionID)) {
                     if (waitsForGraph.containsKey(transactionID)) {
                       waitsForGraph.get(transactionID).add(t);
                     } else {
@@ -464,7 +457,7 @@ public class TransactionManager {
       Integer transactionID) {
     if (site.getLockManager().writeLock.containsKey(var)) {
       Integer t = site.getLockManager().writeLock.get(var);
-      if (t != transactionID) {
+      if (!t.equals(transactionID)) {
         if (waitsForGraph.containsKey(transactionID)) {
           waitsForGraph.get(transactionID).add(t);
         } else {
@@ -474,12 +467,6 @@ public class TransactionManager {
       }
     }
   }
-
-  /*
-  private void blockTransaction(Transaction transaction) {
-    blockedTransactions.add(transaction.getName());
-  }
-   */
 
   public void dump() {
     for (int i = 1; i <= 10; i++) {
@@ -550,7 +537,7 @@ public class TransactionManager {
   private Transaction getTransaction(Integer transactionIndex) {
     List<Transaction> transactions = allTransactions.stream()
         .filter(transaction -> transaction.getName().equals(
-            new StringBuilder("T" + transactionIndex).toString()))
+            "T" + transactionIndex))
         .collect(Collectors.toList());
     return transactions.get(0);
   }

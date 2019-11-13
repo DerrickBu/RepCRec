@@ -15,6 +15,5 @@ public class MainApplication {
     // send all parsed operations to transaction manager, and start running
     TransactionManager transactionManager = new TransactionManager(ioUtils.operations);
     transactionManager.run();
-
   }
 }

@@ -17,7 +17,7 @@ public class LockManager {
   }
 
   public boolean canRead(Integer variable, Integer transaction) {
-    if(!writeLock.containsKey(variable) || writeLock.get(variable) == transaction) {
+    if(!writeLock.containsKey(variable) || writeLock.get(variable).equals(transaction)) {
       if(!readLocks.containsKey(variable)) {
         readLocks.put(variable, new ArrayList<>());
         readLocks.get(variable).add(transaction);
