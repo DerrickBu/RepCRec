@@ -41,10 +41,6 @@ public class Transaction {
     return transactionStatus;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
   public void setTransactionStatus(TransactionStatus transactionStatus) {
     this.transactionStatus = transactionStatus;
   }

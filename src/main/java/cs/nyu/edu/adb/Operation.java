@@ -60,22 +60,6 @@ public class Operation {
     return transaction;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void setTransaction(String transaction) {
-    this.transaction = transaction;
-  }
-
-  public void setVariable(Integer variable) {
-    this.variable = variable;
-  }
-
-  public void setWritesToValue(Integer writesToValue) {
-    this.writesToValue = writesToValue;
-  }
-
   public Integer getVariable() {
     return variable;
   }
@@ -90,10 +74,6 @@ public class Operation {
 
   public Integer getSite() {
     return site;
-  }
-
-  public void setSite(Integer site) {
-    this.site = site;
   }
 
   @Override

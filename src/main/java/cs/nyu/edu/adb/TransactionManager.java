@@ -13,6 +13,7 @@ public class TransactionManager {
   public List<Transaction> allTransactions;
   public List<Site> sites;
   public List<Operation> allOperations;
+  public List<Integer> visitedTransaction;
   // variable -> waiting operations
   public Map<Integer, List<Operation>> waitingOperations;
   // waits for graph
@@ -22,6 +23,7 @@ public class TransactionManager {
 
   public TransactionManager(List<Operation> allOperations) {
     // Initialize operations and sites
+    visitedTransaction = new ArrayList<>();
     allTransactions = new ArrayList<>();
     blockedTransactions = new ArrayList<>();
     waitingOperations = new HashMap<>();
