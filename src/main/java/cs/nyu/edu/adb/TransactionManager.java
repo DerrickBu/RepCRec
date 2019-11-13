@@ -14,7 +14,7 @@ public class TransactionManager {
   public List<Transaction> allTransactions;
   public List<Site> sites;
   public List<Operation> allOperations;
-  public List<Integer> visitedTransaction;
+  public List<Integer> visitedTransactions;
   // variable -> waiting operations
   public Map<Integer, List<Operation>> waitingOperations;
   // waits for graph, transaction -> waiting transactions
@@ -25,7 +25,7 @@ public class TransactionManager {
   public TransactionManager(List<Operation> allOperations) {
     // Initialize operations and sites
     currentTime = 0;
-    visitedTransaction = new ArrayList<>();
+    visitedTransactions = new ArrayList<>();
     allTransactions = new ArrayList<>();
 //    blockedTransactions = new ArrayList<>();
     waitingOperations = new HashMap<>();
@@ -294,13 +294,7 @@ public class TransactionManager {
         if(site.isDown || !canRead) {
           if(!site.isDown) {
             blockReadTransaction(site, var, operation, transactionID);
-            /*
-            if(detectDeadLock()) {
-              // TODO: Should abort the youngest transaction
-              abort(transactionID);
-              transaction.setTransactionStatus(TransactionStatus.IS_FINISHED);
-            }
-             */
+            detectDeadLock(transaction);
           } else {
             addToWaitingSiteList(transactionID, (1 + var) % 10);
           }
@@ -319,6 +313,7 @@ public class TransactionManager {
         for (int i = 1; i <= 10; i++) {
           if(!sites.get(i).isDown) {
             blockReadTransaction(sites.get(i), var, operation, transactionID);
+            detectDeadLock(transaction);
           } else {
             addToWaitingSiteList(transactionID, i);
           }
@@ -365,6 +360,7 @@ public class TransactionManager {
       if(site.isDown || !site.getLockManager().canWrite(var, transactionID)) {
         if(!site.isDown) {
           blockWriteTransaction(site, var, operation, transactionID);
+          detectDeadLock(transaction);
         } else {
           addToWaitingSiteList(transactionID, (1 + var) % 10);
         }
@@ -382,6 +378,7 @@ public class TransactionManager {
         if(site.isDown || !site.getLockManager().canWrite(var, transactionID)) {
           if(!site.isDown) {
             blockWriteTransaction(site, var, operation, transactionID);
+            detectDeadLock(transaction);
           } else {
             addToWaitingSiteList(transactionID, i);
           }
@@ -484,10 +481,27 @@ public class TransactionManager {
     }
   }
 
-  private boolean detectDeadLock() {
+  private void detectDeadLock(Transaction transaction) {
+    Integer transactionID = Integer.valueOf(transaction.getName().substring(1));
+    if(containsDeadLock()) {
+      // Find the youngest transaction
+      Integer youngestTransaction = transactionID;
+      Integer earliestTime = Integer.MAX_VALUE;
+      for(Integer visitedTransaction : visitedTransactions) {
+        if(getTransaction(visitedTransaction).getTimeStamp() < earliestTime) {
+          earliestTime = getTransaction(visitedTransaction).getTimeStamp();
+          youngestTransaction = visitedTransaction;
+        }
+      }
+      abort(youngestTransaction);
+      transaction.setTransactionStatus(TransactionStatus.IS_FINISHED);
+    }
+  }
+
+  private boolean containsDeadLock() {
     for(Transaction transaction : allTransactions) {
       Integer transactionID = Integer.valueOf(transaction.getName().substring(1));
-      visitedTransaction.clear();
+      visitedTransactions.clear();
       if(containsCircle(transactionID)) {
         return true;
       }
@@ -496,17 +510,20 @@ public class TransactionManager {
   }
 
   private boolean containsCircle(Integer transactionID) {
-    if(visitedTransaction.contains(transactionID)) {
+    if(visitedTransactions.contains(transactionID)) {
       return true;
     } else {
-       visitedTransaction.add(transactionID);
+       visitedTransactions.add(transactionID);
+    }
+    if(!waitsForGraph.containsKey(transactionID)) {
+      return false;
     }
     for (int i = 0; i < waitsForGraph.get(transactionID).size(); i++) {
       if(containsCircle(waitsForGraph.get(transactionID).get(i))) {
         return true;
       }
     }
-    visitedTransaction.remove(transactionID);
+    visitedTransactions.remove(transactionID);
     return false;
   }
 
