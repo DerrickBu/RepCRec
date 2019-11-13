@@ -10,18 +10,13 @@ public class Transaction {
   private Operation currentOperation;
   private TransactionStatus transactionStatus;
   private boolean isReadOnly;
-  public List<Operation> waitingOperatons;
+  public List<Operation> waitingOperations;
 
-
-  // TODO: Initialize the timeStamp, which will be used for abort transactions in deadlock cycle
-  public Transaction(String name, boolean isReadOnly) {
+  public Transaction(String name, boolean isReadOnly, Integer timeStamp) {
     transactionStatus = TransactionStatus.ACTIVE;
+    waitingOperations = new ArrayList<>();
     this.name = name;
     this.isReadOnly = isReadOnly;
-    waitingOperatons = new ArrayList<>();
-  }
-
-  public void setTimeStamp(Integer timeStamp) {
     this.timeStamp = timeStamp;
   }
 
@@ -39,10 +34,6 @@ public class Transaction {
 
   public TransactionStatus getTransactionStatus() {
     return transactionStatus;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public void setTransactionStatus(TransactionStatus transactionStatus) {

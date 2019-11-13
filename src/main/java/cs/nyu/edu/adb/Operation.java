@@ -1,5 +1,7 @@
 package cs.nyu.edu.adb;
 
+import java.util.Objects;
+
 public class Operation {
 
   private String name;
@@ -58,22 +60,6 @@ public class Operation {
     return transaction;
   }
 
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void setTransaction(String transaction) {
-    this.transaction = transaction;
-  }
-
-  public void setVariable(Integer variable) {
-    this.variable = variable;
-  }
-
-  public void setWritesToValue(Integer writesToValue) {
-    this.writesToValue = writesToValue;
-  }
-
   public Integer getVariable() {
     return variable;
   }
@@ -90,7 +76,17 @@ public class Operation {
     return site;
   }
 
-  public void setSite(Integer site) {
-    this.site = site;
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof Operation)) {
+      return false;
+    }
+    Operation c = (Operation) o;
+    return Objects.equals(c.name, name)
+        && Objects.equals(c.transaction, transaction)
+        && Objects.equals(c.variable, variable)
+        && Objects.equals(c.writesToValue, writesToValue)
+        && Objects.equals(c.site, site);
   }
+
 }

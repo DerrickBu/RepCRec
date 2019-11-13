@@ -27,34 +27,34 @@ public class IOUtils {
   public void parseFile() {
     try(Stream<String> stream = Files.lines(Paths.get(fileName))) {
       this.operations = stream.map(line -> {
-        String[] seperateStrings = line.trim().split("\\(|\\)|,");
-        if(seperateStrings[0].equals(BEGIN)
-            || seperateStrings[0].equals(END)
-            || seperateStrings[0].equals(BEGIN_RO)) {
-          return new Operation.Builder(seperateStrings[0])
-              .transaction(seperateStrings[1])
+        String[] separateStrings = line.trim().split("\\(|\\)|,");
+        if(separateStrings[0].equals(BEGIN)
+            || separateStrings[0].equals(END)
+            || separateStrings[0].equals(BEGIN_RO)) {
+          return new Operation.Builder(separateStrings[0])
+              .transaction(separateStrings[1])
               .build();
-        } else if(seperateStrings[0].equals(DUMP)){
-          return new Operation.Builder(seperateStrings[0])
+        } else if(separateStrings[0].equals(DUMP)){
+          return new Operation.Builder(separateStrings[0])
               .build();
-        } else if(seperateStrings[0].equals(READ)) {
-          return new Operation.Builder(seperateStrings[0])
-              .transaction(seperateStrings[1])
-              .variable(Integer.valueOf(seperateStrings[2].substring(1)))
+        } else if(separateStrings[0].equals(READ)) {
+          return new Operation.Builder(separateStrings[0])
+              .transaction(separateStrings[1])
+              .variable(Integer.valueOf(separateStrings[2].substring(1)))
               .build();
-        } else if(seperateStrings[0].equals(WRITE)) {
-          return new Operation.Builder(seperateStrings[0])
-              .transaction(seperateStrings[1])
-              .variable(Integer.valueOf(seperateStrings[2].substring(1)))
-              .writesToValue(Integer.valueOf(seperateStrings[3]))
+        } else if(separateStrings[0].equals(WRITE)) {
+          return new Operation.Builder(separateStrings[0])
+              .transaction(separateStrings[1])
+              .variable(Integer.valueOf(separateStrings[2].substring(1)))
+              .writesToValue(Integer.valueOf(separateStrings[3]))
               .build();
-        } else if(seperateStrings[0].equals(FAIL)
-            || seperateStrings[0].equals(RECOVER)) {
-          return new Operation.Builder(seperateStrings[0])
-              .site(Integer.valueOf(seperateStrings[1]))
+        } else if(separateStrings[0].equals(FAIL)
+            || separateStrings[0].equals(RECOVER)) {
+          return new Operation.Builder(separateStrings[0])
+              .site(Integer.valueOf(separateStrings[1]))
               .build();
         } else {
-          throw new UnsupportedOperationException("This opetation is not being supported");
+          throw new UnsupportedOperationException("This operation is not being supported");
         }
       }).collect(Collectors.toList());
     } catch (IOException e) {
@@ -62,5 +62,4 @@ public class IOUtils {
     }
   }
 
-  // TODO: output utils
 }
