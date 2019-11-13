@@ -272,12 +272,6 @@ public class TransactionManager {
     Integer var = operation.getVariable();
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
-    // if the transaction has already been blocked
-//    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
-//      transaction.waitingOperatons.add(operation);
-//      return false;
-//    }
-
     // set current operation
     transaction.setCurrentOperation(operation);
 
@@ -353,12 +347,6 @@ public class TransactionManager {
     Integer value = operation.getWritesToValue();
     Integer var = operation.getVariable();
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
-
-    // if the transaction has already been blocked
-//    if(transaction.getTransactionStatus() == TransactionStatus.IS_BLOCKED) {
-//      transaction.waitingOperatons.add(operation);
-//      return false;
-//    }
 
     // set current operation
     transaction.setCurrentOperation(operation);
@@ -470,7 +458,6 @@ public class TransactionManager {
   }
 
   private void blockTransaction(Transaction transaction) {
-//    transaction.setTransactionStatus(TransactionStatus.IS_BLOCKED);
     blockedTransactions.add(transaction.getName());
   }
 
