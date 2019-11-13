@@ -1,5 +1,5 @@
 package cs.nyu.edu.adb;
 
 public enum TransactionStatus {
-  ACTIVE, SHOULD_BE_ABORT
+  ACTIVE, IS_FINISHED, SHOULD_BE_ABORT
 }

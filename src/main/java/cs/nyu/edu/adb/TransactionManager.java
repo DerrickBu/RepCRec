@@ -9,23 +9,25 @@ import java.util.stream.Collectors;
 // TODO: Write comments for every method
 public class TransactionManager {
 
-  public List<String> blockedTransactions;
+//  public List<String> blockedTransactions;
+  Integer currentTime;
   public List<Transaction> allTransactions;
   public List<Site> sites;
   public List<Operation> allOperations;
   public List<Integer> visitedTransaction;
   // variable -> waiting operations
   public Map<Integer, List<Operation>> waitingOperations;
-  // waits for graph
+  // waits for graph, transaction -> waiting transactions
   public Map<Integer, List<Integer>> waitsForGraph;
   // transactionID -> waiting sites
   public Map<Integer, List<Integer>> waitingSites;
 
   public TransactionManager(List<Operation> allOperations) {
     // Initialize operations and sites
+    currentTime = 0;
     visitedTransaction = new ArrayList<>();
     allTransactions = new ArrayList<>();
-    blockedTransactions = new ArrayList<>();
+//    blockedTransactions = new ArrayList<>();
     waitingOperations = new HashMap<>();
     waitsForGraph = new HashMap<>();
     waitingSites = new HashMap<>();
@@ -51,22 +53,24 @@ public class TransactionManager {
 
   public void executeOperation(Operation operation) {
     String op = operation.getName();
+    currentTime = currentTime + 1;
     switch (op) {
       case IOUtils.BEGIN:
-        allTransactions.add(initTransaction(operation, false));
+        allTransactions.add(initTransaction(operation, false, currentTime));
         break;
       case IOUtils.BEGIN_RO:
-        allTransactions.add(initTransaction(operation, true));
+        allTransactions.add(initTransaction(operation, true, currentTime));
         break;
       case IOUtils.DUMP:
         dump();
         break;
       case IOUtils.END:
+        Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
         if(getTransaction(operation).getTransactionStatus()
             == TransactionStatus.SHOULD_BE_ABORT) {
-          abort(operation);
+          abort(transactionID);
         } else {
-          commit(operation);
+          commit(transactionID);
         }
         break;
       case IOUtils.FAIL:
@@ -102,20 +106,19 @@ public class TransactionManager {
     }
   }
 
-  public Transaction initTransaction(Operation operation, boolean isReadOnly) {
-    return new Transaction(operation.getTransaction(), isReadOnly);
+  public Transaction initTransaction(Operation operation, boolean isReadOnly, Integer timeStamp) {
+    return new Transaction(operation.getTransaction(), isReadOnly, timeStamp);
   }
 
-  public void abort(Operation operation) {
-    commitOrAbort(operation, false);
+  public void abort(Integer transactionID) {
+    commitOrAbort(transactionID, false);
   }
 
-  public void commit(Operation operation) {
-    commitOrAbort(operation, true);
+  public void commit(Integer transactionID) {
+    commitOrAbort(transactionID, true);
   }
 
-  private void commitOrAbort(Operation operation, boolean shouldCommit) {
-    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
+  private void commitOrAbort(Integer transactionID, boolean shouldCommit) {
 
     List<Integer> holdVariables = new ArrayList<>();
     // Iterate all sites and find variables which transaction holds lock on, and remove locks.
@@ -275,13 +278,11 @@ public class TransactionManager {
     // set current operation
     transaction.setCurrentOperation(operation);
 
-    // TODO: support read only transaction read
     if(transaction.isReadOnly()) {
       if(var % 2 == 1) {
         Site site = sites.get((1 + var) % 10);
         return readVariable(site, var, true, transaction);
       } else {
-        // TODO: Not sure about the logic here
         return readVariable(sites.get(1), var, true, transaction);
       }
 
@@ -293,10 +294,17 @@ public class TransactionManager {
         if(site.isDown || !canRead) {
           if(!site.isDown) {
             blockReadTransaction(site, var, operation, transactionID);
+            /*
+            if(detectDeadLock()) {
+              // TODO: Should abort the youngest transaction
+              abort(transactionID);
+              transaction.setTransactionStatus(TransactionStatus.IS_FINISHED);
+            }
+             */
           } else {
             addToWaitingSiteList(transactionID, (1 + var) % 10);
           }
-          blockTransaction(transaction);
+//          blockTransaction(transaction);
           return false;
         } else {
           return readVariable(site, var, false, transaction);
@@ -315,7 +323,7 @@ public class TransactionManager {
             addToWaitingSiteList(transactionID, i);
           }
         }
-        blockTransaction(transaction);
+//        blockTransaction(transaction);
         return false;
       }
     }
@@ -360,7 +368,7 @@ public class TransactionManager {
         } else {
           addToWaitingSiteList(transactionID, (1 + var) % 10);
         }
-        blockTransaction(transaction);
+//        blockTransaction(transaction);
         return false;
       } else {
         site.getLockManager().write(var, transactionID);
@@ -381,7 +389,7 @@ public class TransactionManager {
         }
       }
       if(!flag) {
-        blockTransaction(transaction);
+//        blockTransaction(transaction);
         return false;
       } else {
         sites.stream().skip(1).forEach(site -> {
@@ -457,9 +465,11 @@ public class TransactionManager {
     }
   }
 
+  /*
   private void blockTransaction(Transaction transaction) {
     blockedTransactions.add(transaction.getName());
   }
+   */
 
   public void dump() {
     for (int i = 1; i <= 10; i++) {
@@ -474,8 +484,29 @@ public class TransactionManager {
     }
   }
 
-  // TODO:
-  public boolean detectDeadLock() {
+  private boolean detectDeadLock() {
+    for(Transaction transaction : allTransactions) {
+      Integer transactionID = Integer.valueOf(transaction.getName().substring(1));
+      visitedTransaction.clear();
+      if(containsCircle(transactionID)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean containsCircle(Integer transactionID) {
+    if(visitedTransaction.contains(transactionID)) {
+      return true;
+    } else {
+       visitedTransaction.add(transactionID);
+    }
+    for (int i = 0; i < waitsForGraph.get(transactionID).size(); i++) {
+      if(containsCircle(waitsForGraph.get(transactionID).get(i))) {
+        return true;
+      }
+    }
+    visitedTransaction.remove(transactionID);
     return false;
   }
 
