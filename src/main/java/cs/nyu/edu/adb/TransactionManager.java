@@ -122,7 +122,13 @@ public class TransactionManager {
 
       // Add all variables holding by this transaction to a list
       site.getLockManager().readLocks.forEach((key, value) -> {
-        if(value.contains(transactionID)) {
+        if (value.contains(transactionID) && !holdVariables.contains(key)) {
+          holdVariables.add(key);
+        }
+      });
+
+      site.getLockManager().writeLock.forEach((key, value) -> {
+        if(value.equals(transactionID) && !holdVariables.contains(key)) {
           holdVariables.add(key);
         }
       });
@@ -159,30 +165,45 @@ public class TransactionManager {
           .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
       site.getLockManager().readLocks.entrySet().removeIf(entry -> entry.getValue().size() == 0);
     }
-    holdVariables.stream().forEach(holdVariable -> {
-      if(waitingOperations.containsKey(holdVariable)) {
-        Operation waitingOperation = waitingOperations.get(holdVariable).get(0);
-        if(waitingOperation.getName().equals(IOUtils.READ)) {
-          while(read(waitingOperation)) {
-            waitingOperations.get(holdVariable).remove(0);
-            if(waitingOperations.get(holdVariable).size() == 0) {
-              waitingOperations.remove(holdVariable);
-              break;
-            }
-          }
-        } else if(waitingOperation.getName().equals(IOUtils.WRITE)) {
-          while(write(waitingOperation)) {
-            waitingOperations.get(holdVariable).remove(0);
-            if(waitingOperations.get(holdVariable).size() == 0) {
-              waitingOperations.remove(holdVariable);
-              break;
-            }
-          }
-        } else {
-          throw new IllegalArgumentException("This operation should not be blocked");
-        }
-      }
-    });
+    holdVariables.stream()
+        .forEach(
+            holdVariable -> {
+              if (waitingOperations.containsKey(holdVariable)) {
+                Operation waitingOperation = waitingOperations.get(holdVariable).get(0);
+                boolean flag = true;
+                while (waitingOperation != null && flag) {
+                  if (waitingOperation.getName().equals(IOUtils.READ)) {
+                    if (read(waitingOperation)) {
+                      waitingOperation = addToWaitingOperations(holdVariable);
+                    } else {
+                      flag = false;
+                    }
+                  } else if (waitingOperation.getName().equals(IOUtils.WRITE)) {
+                    if (write(waitingOperation)) {
+                      waitingOperation = addToWaitingOperations(holdVariable);
+                    } else {
+                      flag = false;
+                    }
+                  } else {
+                    throw new IllegalArgumentException("This operation should not be blocked");
+                  }
+                }
+              }
+            });
+  }
+
+  private Operation addToWaitingOperations(Integer holdVariable) {
+    Operation waitingOperation;
+    waitingOperations.get(holdVariable).remove(0);
+    if (waitingOperations.get(holdVariable).size() == 0) {
+      waitingOperations.remove(holdVariable);
+    }
+    if (!waitingOperations.containsKey(holdVariable)) {
+      waitingOperation = null;
+    } else {
+      waitingOperation = waitingOperations.get(holdVariable).get(0);
+    }
+    return waitingOperation;
   }
 
   /**
