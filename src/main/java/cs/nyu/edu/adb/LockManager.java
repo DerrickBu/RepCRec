@@ -8,12 +8,20 @@ import java.util.Map;
 public class LockManager {
 
   // variable -> transaction index
-  public Map<Integer, List<Integer>> readLocks;
-  public Map<Integer, Integer> writeLock;
+  private Map<Integer, List<Integer>> readLocks;
+  private Map<Integer, Integer> writeLock;
 
   public LockManager() {
     readLocks = new HashMap<>();
     writeLock = new HashMap<>();
+  }
+
+  public Map<Integer, List<Integer>> getReadLocks() {
+    return readLocks;
+  }
+
+  public Map<Integer, Integer> getWriteLock() {
+    return writeLock;
   }
 
   public boolean canRead(Integer variable, Integer transaction) {

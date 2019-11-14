@@ -169,13 +169,13 @@ public class TransactionManager {
 
     List<Integer> holdVariables = new ArrayList<>();
 
-    lockManager.readLocks.forEach((key, value) -> {
+    lockManager.getReadLocks().forEach((key, value) -> {
       holdVariables.add(key);
       value.forEach(transaction ->
           getTransaction(transaction).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT));
     });
 
-    lockManager.writeLock.forEach((key, value) -> {
+    lockManager.getWriteLock().forEach((key, value) -> {
       holdVariables.add(key);
       getTransaction(value).setTransactionStatus(TransactionStatus.SHOULD_BE_ABORT);
     });
@@ -183,8 +183,8 @@ public class TransactionManager {
     holdVariables.forEach(dataManager::updateToCommittedValue);
 
     // erase all the locks
-    lockManager.readLocks.clear();
-    lockManager.writeLock.clear();
+    lockManager.getReadLocks().clear();
+    lockManager.getWriteLock().clear();
   }
 
   /**
@@ -493,8 +493,8 @@ public class TransactionManager {
         waitingOperations.put(var, new ArrayList<>());
         waitingOperations.get(var).add(operation);
       }
-      if (site.getLockManager().readLocks.containsKey(var)) {
-        site.getLockManager().readLocks.get(var).forEach(t -> {
+      if (site.getLockManager().getReadLocks().containsKey(var)) {
+        site.getLockManager().getReadLocks().get(var).forEach(t -> {
           if (!t.equals(transactionID)) {
             if (waitsForGraph.containsKey(transactionID)) {
               waitsForGraph.get(transactionID).add(t);
@@ -544,8 +544,8 @@ public class TransactionManager {
   private void checkWriteLocks(Site site,
       Integer var,
       Integer transactionID) {
-    if (site.getLockManager().writeLock.containsKey(var)) {
-      Integer t = site.getLockManager().writeLock.get(var);
+    if (site.getLockManager().getWriteLock().containsKey(var)) {
+      Integer t = site.getLockManager().getWriteLock().get(var);
       if (!t.equals(transactionID)) {
         if (waitsForGraph.containsKey(transactionID)) {
           if (!waitsForGraph.get(transactionID).contains(t)) {
@@ -689,13 +689,13 @@ public class TransactionManager {
   private List<Integer> findVariables(Site site, Integer transactionID) {
     // Add all variables holding by this transaction to a list
     List<Integer> holdVariables = new ArrayList<>();
-    site.getLockManager().readLocks.forEach((key, value) -> {
+    site.getLockManager().getReadLocks().forEach((key, value) -> {
       if (value.contains(transactionID) && !holdVariables.contains(key)) {
         holdVariables.add(key);
       }
     });
 
-    site.getLockManager().writeLock.forEach((key, value) -> {
+    site.getLockManager().getWriteLock().forEach((key, value) -> {
       if(value.equals(transactionID) && !holdVariables.contains(key)) {
         holdVariables.add(key);
       }
@@ -709,7 +709,7 @@ public class TransactionManager {
    * @param transactionID used to check if the variable if holding by this transaction
    */
   private void updateCommitValues(Site site, Integer transactionID) {
-    site.getLockManager().writeLock.forEach((key, value) -> {
+    site.getLockManager().getWriteLock().forEach((key, value) -> {
       if (value.equals(transactionID)) {
         site.getDataManager().updateToCurValue(key);
       }
@@ -722,7 +722,7 @@ public class TransactionManager {
    * @param transactionID used to check if the variable if holding by this transaction
    */
   private void revertCurrentValue(Site site, Integer transactionID) {
-    site.getLockManager().writeLock.forEach((key, value) -> {
+    site.getLockManager().getWriteLock().forEach((key, value) -> {
       if (value.equals(transactionID)) {
         site.getDataManager().updateToCommittedValue(key);
       }
@@ -735,10 +735,10 @@ public class TransactionManager {
    * @param transactionID used to release locks
    */
   private void releaseAllLocks(Site site, Integer transactionID) {
-    site.getLockManager().readLocks.forEach((key, value) -> value.remove(transactionID));
+    site.getLockManager().getReadLocks().forEach((key, value) -> value.remove(transactionID));
     site.getLockManager()
-        .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
-    site.getLockManager().readLocks.entrySet().removeIf(entry -> entry.getValue().size() == 0);
+        .getWriteLock().entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
+    site.getLockManager().getReadLocks().entrySet().removeIf(entry -> entry.getValue().size() == 0);
   }
 
   /**
