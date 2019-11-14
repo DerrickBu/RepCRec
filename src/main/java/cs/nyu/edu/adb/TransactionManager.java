@@ -195,12 +195,15 @@ public class TransactionManager {
   private void recover(Integer site) {
     Site failSite = sites.get(site);
     failSite.setIsDown(false);
+
+    // erase site from waiting sites lists
     for(Map.Entry<Integer, List<Integer>> entry : waitingSites.entrySet()) {
       List<Integer> sites = entry.getValue();
-      if (sites.contains(site)) {
-        sites.remove(site);
-      }
+      sites.remove(site);
     }
+
+    // If a list is empty after removal, it means this operation is waiting for nothing
+    // and could be waked up
     waitingSites.forEach((key, value) -> {
       if(value.size() == 0) {
         Operation operation = getTransaction(key).getCurrentOperation();
@@ -230,43 +233,81 @@ public class TransactionManager {
 
     Transaction transaction = getTransaction(operation);
     Integer variable = operation.getVariable();
-    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
     // set current operation
     transaction.setCurrentOperation(operation);
 
     if(transaction.isReadOnly()) {
-      if(variable % 2 == 1) {
-        Site site = sites.get((1 + variable) % 10);
-        readVariable(site, variable, true, transaction);
-      } else {
-        readVariable(sites.get(1), variable, true, transaction);
-      }
+      readVariableForReadOnly(variable, transaction);
       return true;
     } else {
       // If the variable is odd number
       if(variable % 2 == 1) {
-        Site site = sites.get((1 + variable) % 10);
-        boolean canRead = site.getLockManager().canRead(variable, transactionID);
-        if(site.isDown() || !canRead) {
-          blockOperation(site, variable, operation, transactionID, true);
-          return false;
-        } else {
-          readVariable(site, variable, false, transaction);
-          return true;
-        }
+        return readVariableWithOddIndex(variable, transaction, operation);
       } else {
-        for(int i = 1; i <= 10; ++i) {
-          if(!sites.get(i).isDown() && sites.get(i).getLockManager()
-              .canRead(variable, transactionID)) {
-            readVariable(sites.get(i), variable, false, transaction);
-            return true;
-          }
-        }
-        sites.stream().skip(1).forEach(site ->
-            blockOperation(site, variable, operation, transactionID, true));
-        return false;
+        return readVariableWithEvenIndex(variable, transaction, operation);
       }
+    }
+  }
+
+  /**
+   * Read a variable for read only transaction
+   * @param variable given to read
+   * @param transaction given to get transaction status
+   */
+  private void readVariableForReadOnly(Integer variable, Transaction transaction) {
+    if(variable % 2 == 1) {
+      Site site = sites.get((1 + variable) % 10);
+      readVariable(site, variable, true, transaction);
+    } else {
+      readVariable(sites.get(1), variable, true, transaction);
+    }
+  }
+
+  /**
+   * Read value of a variable with even index
+   * @param variable given to read
+   * @param transaction given to get status and build waits for graph if cannot read
+   * @param operation given to block if we cannot read
+   * @return true if can read, false if cannot read
+   */
+  private boolean readVariableWithEvenIndex(
+      Integer variable,
+      Transaction transaction,
+      Operation operation) {
+    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
+    for(int i = 1; i <= 10; ++i) {
+      if(!sites.get(i).isDown() && sites.get(i).getLockManager()
+          .canRead(variable, transactionID)) {
+        readVariable(sites.get(i), variable, false, transaction);
+        return true;
+      }
+    }
+    sites.stream().skip(1).forEach(site ->
+        blockOperation(site, variable, operation, transactionID, true));
+    return false;
+  }
+
+  /**
+   * Read value of a variable with odd index
+   * @param variable given to read
+   * @param transaction given to get status and build waits for graph if cannot read
+   * @param operation given to block if we cannot read
+   * @return true if can read, false if cannot read
+   */
+  private boolean readVariableWithOddIndex(
+      Integer variable,
+      Transaction transaction,
+      Operation operation) {
+    Site site = sites.get((1 + variable) % 10);
+    Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
+    boolean canRead = site.getLockManager().canRead(variable, transactionID);
+    if(site.isDown() || !canRead) {
+      blockOperation(site, variable, operation, transactionID, true);
+      return false;
+    } else {
+      readVariable(site, variable, false, transaction);
+      return true;
     }
   }
 
@@ -369,12 +410,12 @@ public class TransactionManager {
   private void dump() {
     for (int i = 1; i <= 10; i++) {
       StringBuilder stringBuilder = new StringBuilder();
-      stringBuilder.append("site " + i + " - ");
+      stringBuilder.append("site ").append(i).append(" - ");
       Map<Integer, Integer> sortedVariables = sites.get(i)
           .getDataManager()
           .getAllSortedCommittedValues();
       sortedVariables.forEach((key, value) ->
-          stringBuilder.append("x" + key + ": " + value + ", "));
+          stringBuilder.append("x").append(key).append(": ").append(value).append(", "));
       System.out.println(stringBuilder);
     }
   }
@@ -625,47 +666,87 @@ public class TransactionManager {
     for (int i = 1; i <= 10; ++i) {
       Site site = sites.get(i);
 
-      // Add all variables holding by this transaction to a list
-      site.getLockManager().readLocks.forEach((key, value) -> {
-        if (value.contains(transactionID) && !holdVariables.contains(key)) {
-          holdVariables.add(key);
-        }
-      });
-
-      site.getLockManager().writeLock.forEach((key, value) -> {
-        if(value.equals(transactionID) && !holdVariables.contains(key)) {
-          holdVariables.add(key);
-        }
-      });
+      holdVariables.addAll(findVariables(site, transactionID));
 
       if (shouldCommit) {
         // Update committed to current values
-        site.getLockManager().writeLock.forEach((key, value) -> {
-          if (value.equals(transactionID)) {
-            holdVariables.add(key);
-            site.getDataManager().updateToCurValue(key);
-          }
-        });
+        updateCommitValues(site, transactionID);
       } else {
         // Revert current value to committed value
-        site.getLockManager().writeLock.forEach((key, value) -> {
-          if (value.equals(transactionID)) {
-            if (!holdVariables.contains(key)) {
-              holdVariables.add(key);
-            }
-            site.getDataManager().updateToCommittedValue(key);
-          }
-        });
+        revertCurrentValue(site, transactionID);
       }
-
-      // Release all the locks
-      site.getLockManager().readLocks.forEach((key, value) -> value.remove(transactionID));
-      site.getLockManager()
-          .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
-      site.getLockManager().readLocks.entrySet().removeIf(entry -> entry.getValue().size() == 0);
+      releaseAllLocks(site, transactionID);
     }
+    wakeBlockOperations(holdVariables);
+  }
 
-    // Wake waiting operations based on released variables held by this transaction before
+  /**
+   * Find variables held by given transaction in a given site
+   * @param site given to find hold variables
+   * @param transactionID given to find variables
+   * @return a list of variables which are being held
+   */
+  private List<Integer> findVariables(Site site, Integer transactionID) {
+    // Add all variables holding by this transaction to a list
+    List<Integer> holdVariables = new ArrayList<>();
+    site.getLockManager().readLocks.forEach((key, value) -> {
+      if (value.contains(transactionID) && !holdVariables.contains(key)) {
+        holdVariables.add(key);
+      }
+    });
+
+    site.getLockManager().writeLock.forEach((key, value) -> {
+      if(value.equals(transactionID) && !holdVariables.contains(key)) {
+        holdVariables.add(key);
+      }
+    });
+    return holdVariables;
+  }
+
+  /**
+   * Update commit value of a variable to its current value
+   * @param site used to get lock table
+   * @param transactionID used to check if the variable if holding by this transaction
+   */
+  private void updateCommitValues(Site site, Integer transactionID) {
+    site.getLockManager().writeLock.forEach((key, value) -> {
+      if (value.equals(transactionID)) {
+        site.getDataManager().updateToCurValue(key);
+      }
+    });
+  }
+
+  /**
+   * Revert current value of a variable to its commit value
+   * @param site used to get lock table
+   * @param transactionID used to check if the variable if holding by this transaction
+   */
+  private void revertCurrentValue(Site site, Integer transactionID) {
+    site.getLockManager().writeLock.forEach((key, value) -> {
+      if (value.equals(transactionID)) {
+        site.getDataManager().updateToCommittedValue(key);
+      }
+    });
+  }
+
+  /**
+   * Release all the locks
+   * @param site given to get lock table
+   * @param transactionID used to release locks
+   */
+  private void releaseAllLocks(Site site, Integer transactionID) {
+    site.getLockManager().readLocks.forEach((key, value) -> value.remove(transactionID));
+    site.getLockManager()
+        .writeLock.entrySet().removeIf(entry -> entry.getValue().equals(transactionID));
+    site.getLockManager().readLocks.entrySet().removeIf(entry -> entry.getValue().size() == 0);
+  }
+
+  /**
+   * Wake waiting operations which are waiting for
+   * the released variables held by the transaction
+   * @param holdVariables which are held by the transaction before
+   */
+  private void wakeBlockOperations(List<Integer> holdVariables) {
     holdVariables.forEach(holdVariable -> {
       if (waitingOperations.containsKey(holdVariable)) {
         Operation waitingOperation = waitingOperations.get(holdVariable).get(0);
