@@ -42,7 +42,7 @@ public class TransactionManager {
     this.allOperations = allOperations;
     sites = new ArrayList<>();
     for (int i = 0; i < 11; i++) {
-      sites.add(new Site());
+      sites.add(new Site(i));
     }
     for(int i = 1; i <= 20; ++i) {
       if(i % 2 == 1) {
@@ -161,7 +161,7 @@ public class TransactionManager {
    */
   private void fail(Integer site) {
     Site failSite = sites.get(site);
-    failSite.isDown = true;
+    failSite.setIsDown(true);
 
     // Mark all transactions which have accessed items in this site 'SHOULD_BE_ABORTED'
     LockManager lockManager = failSite.getLockManager();
@@ -194,7 +194,7 @@ public class TransactionManager {
    */
   private void recover(Integer site) {
     Site failSite = sites.get(site);
-    failSite.isDown = false;
+    failSite.setIsDown(false);
     for(Map.Entry<Integer, List<Integer>> entry : waitingSites.entrySet()) {
       List<Integer> sites = entry.getValue();
       if (sites.contains(site)) {
@@ -229,51 +229,42 @@ public class TransactionManager {
   private boolean read(Operation operation) {
 
     Transaction transaction = getTransaction(operation);
-    Integer var = operation.getVariable();
+    Integer variable = operation.getVariable();
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
     // set current operation
     transaction.setCurrentOperation(operation);
 
     if(transaction.isReadOnly()) {
-      if(var % 2 == 1) {
-        Site site = sites.get((1 + var) % 10);
-        return readVariable(site, var, true, transaction);
+      if(variable % 2 == 1) {
+        Site site = sites.get((1 + variable) % 10);
+        readVariable(site, variable, true, transaction);
       } else {
-        return readVariable(sites.get(1), var, true, transaction);
+        readVariable(sites.get(1), variable, true, transaction);
       }
-
+      return true;
     } else {
       // If the variable is odd number
-      if(var % 2 == 1) {
-        Site site = sites.get((1 + var) % 10);
-        boolean canRead = site.getLockManager().canRead(var, transactionID);
-        if(site.isDown || !canRead) {
-          if(!site.isDown) {
-            blockReadTransaction(site, var, operation, transactionID);
-            detectDeadLock();
-          } else {
-            addToWaitingSiteList(transactionID, (1 + var) % 10);
-          }
+      if(variable % 2 == 1) {
+        Site site = sites.get((1 + variable) % 10);
+        boolean canRead = site.getLockManager().canRead(variable, transactionID);
+        if(site.isDown() || !canRead) {
+          blockOperation(site, variable, operation, transactionID, true);
           return false;
         } else {
-          return readVariable(site, var, false, transaction);
+          readVariable(site, variable, false, transaction);
+          return true;
         }
       } else {
         for(int i = 1; i <= 10; ++i) {
-          if(!sites.get(i).isDown && sites.get(i).getLockManager()
-              .canRead(var, transactionID)) {
-            return readVariable(sites.get(i), var, false, transaction);
+          if(!sites.get(i).isDown() && sites.get(i).getLockManager()
+              .canRead(variable, transactionID)) {
+            readVariable(sites.get(i), variable, false, transaction);
+            return true;
           }
         }
-        for (int i = 1; i <= 10; i++) {
-          if(!sites.get(i).isDown) {
-            blockReadTransaction(sites.get(i), var, operation, transactionID);
-            detectDeadLock();
-          } else {
-            addToWaitingSiteList(transactionID, i);
-          }
-        }
+        sites.stream().skip(1).forEach(site ->
+            blockOperation(site, variable, operation, transactionID, true));
         return false;
       }
     }
@@ -291,51 +282,83 @@ public class TransactionManager {
   private boolean write(Operation operation) {
     Transaction transaction = getTransaction(operation);
     Integer value = operation.getWritesToValue();
-    Integer var = operation.getVariable();
+    Integer variable = operation.getVariable();
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
 
     // set current operation
     transaction.setCurrentOperation(operation);
 
     // if it's odd number
-    if(var % 2 == 1) {
-      Site site = sites.get((1 + var) % 10);
-      if(site.isDown || !site.getLockManager().canWrite(var, transactionID)) {
-        if(!site.isDown) {
-          blockWriteTransaction(site, var, operation, transactionID);
-          detectDeadLock();
-        } else {
-          addToWaitingSiteList(transactionID, (1 + var) % 10);
-        }
+    if(variable % 2 == 1) {
+      Site site = sites.get((1 + variable) % 10);
+      if(site.isDown() || !site.getLockManager().canWrite(variable, transactionID)) {
+        blockOperation(site, variable, operation, transactionID, false);
         return false;
       } else {
-        site.getLockManager().write(var, transactionID);
-        site.getDataManager().updateValue(var, value);
+        site.getLockManager().write(variable, transactionID);
+        site.getDataManager().updateValue(variable, value);
         return true;
       }
     } else {
-      boolean flag = true;
-      for (int i = 1; i <= 10; i++) {
-        Site site = sites.get(i);
-        if(site.isDown || !site.getLockManager().canWrite(var, transactionID)) {
-          if(!site.isDown) {
-            blockWriteTransaction(site, var, operation, transactionID);
-            detectDeadLock();
-          } else {
-            addToWaitingSiteList(transactionID, i);
-          }
-          flag = false;
-        }
-      }
-      if(!flag) {
+      if(!canWrite(variable, transactionID, operation)) {
         return false;
       } else {
         sites.stream().skip(1).forEach(site -> {
-          site.getLockManager().write(var, transactionID);
-          site.getDataManager().updateValue(var, value);
+          site.getLockManager().write(variable, transactionID);
+          site.getDataManager().updateValue(variable, value);
         });
         return true;
       }
+    }
+  }
+
+  /**
+   * Check if we could write variable with even index to new value
+   * @param variable given to write
+   * @param transactionID given to check locks
+   * @param operation given to block if cannot write
+   * @return true if can write and false if cannot write
+   */
+  private boolean canWrite(
+      Integer variable,
+      Integer transactionID,
+      Operation operation) {
+    for(int i = 1; i <= 10; i++) {
+      Site site = sites.get(i);
+      if(site.isDown()
+          || !site.getLockManager().canWrite(variable, transactionID)) {
+        blockOperation(site, variable, operation, transactionID, false);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Block an operation
+   * If this operation is waiting for a variable, then put it into waiting variable list
+   * and waits for graph. After that, detect deadlock, abort transaction if there exists
+   * If the operation is waiting ofr a down site, then put it into waiting site list
+   * @param site used to get lock table and see if it's down
+   * @param variable used to find waiting lists of operations
+   * @param operation given to block
+   * @param transactionID used to build waits for graph
+   */
+  private void blockOperation(
+      Site site,
+      Integer variable,
+      Operation operation,
+      Integer transactionID,
+      boolean isReadOperation) {
+    if(!site.isDown()) {
+      if (isReadOperation) {
+        blockRead(site, variable, operation, transactionID);
+      } else {
+        blockWrite(site, variable, operation, transactionID);
+      }
+      detectDeadLock();
+    } else {
+      addToWaitingSiteList(transactionID, site.getIndex());
     }
   }
 
@@ -397,7 +420,7 @@ public class TransactionManager {
    * @param transaction given for print important debugging information
    * @return
    */
-  private boolean readVariable(Site site,
+  private void readVariable(Site site,
       Integer var,
       boolean readCommittedValue,
       Transaction transaction) {
@@ -407,7 +430,6 @@ public class TransactionManager {
       System.out.println(String.format("Transaction %s can read variable %s, the value is %s",
           transaction.getName(), "x" + var, val));
     }
-    return true;
   }
 
   /**
@@ -418,12 +440,12 @@ public class TransactionManager {
    * @param operation given to put into blocking lists
    * @param transactionID given to build wait for graph
    */
-  private void blockWriteTransaction(
+  private void blockWrite(
       Site site,
       Integer var,
       Operation operation,
       Integer transactionID) {
-    if (!site.isDown) {
+    if (!site.isDown()) {
       if (waitingOperations.containsKey(var)) {
         waitingOperations.get(var).add(operation);
       } else {
@@ -450,22 +472,25 @@ public class TransactionManager {
    * Block a read operation
    * Put this operation to waiting list and wait for graph used for deadlock detection
    * @param site used to get lock table
-   * @param var used to put operation to correct list
+   * @param variable used to put operation to correct list
    * @param operation given to put into blocking lists
    * @param transactionID given to build wait for graph
    */
-  private void blockReadTransaction(
-      Site site, Integer var, Operation operation, Integer transactionID) {
-    if (!site.isDown) {
-      if (waitingOperations.containsKey(var)) {
-        if (!waitingOperations.get(var).contains(operation)) {
-          waitingOperations.get(var).add(operation);
+  private void blockRead(
+      Site site,
+      Integer variable,
+      Operation operation,
+      Integer transactionID) {
+    if (!site.isDown()) {
+      if (waitingOperations.containsKey(variable)) {
+        if (!waitingOperations.get(variable).contains(operation)) {
+          waitingOperations.get(variable).add(operation);
         }
       } else {
-        waitingOperations.put(var, new ArrayList<>());
-        waitingOperations.get(var).add(operation);
+        waitingOperations.put(variable, new ArrayList<>());
+        waitingOperations.get(variable).add(operation);
       }
-      checkWriteLocks(site, var, transactionID);
+      checkWriteLocks(site, variable, transactionID);
     }
   }
 
