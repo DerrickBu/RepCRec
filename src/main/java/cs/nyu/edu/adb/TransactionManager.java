@@ -99,8 +99,10 @@ public class TransactionManager {
         break;
       case IOUtils.READ:
         if(!read(operation)) {
-          System.out.println(String.format("Transaction %s cannot read variable %s",
-              operation.getTransaction(), operation.getVariable().toString()));
+          String outputMessage = String.format("Transaction %s cannot read variable %s",
+              operation.getTransaction(), operation.getVariable().toString());
+          System.out.println(outputMessage);
+          IOUtils.writeToOutputFile(outputMessage);
         }
         break;
       case IOUtils.RECOVER:
@@ -108,15 +110,19 @@ public class TransactionManager {
         break;
       case IOUtils.WRITE:
         if(write(operation)) {
-          System.out.println(String.format("Transaction %s can write variable %s to new value %s",
+          String outputMessage = String.format("Transaction %s can write variable %s to new value %s",
               operation.getTransaction(),
               operation.getVariable().toString(),
-              operation.getWritesToValue().toString()));
+              operation.getWritesToValue().toString());
+          System.out.println(outputMessage);
+          IOUtils.writeToOutputFile(outputMessage);
         } else {
-          System.out.println(String.format("Transaction %s cannot write variable %s to new value %s",
+          String outputMessage = String.format("Transaction %s cannot write variable %s to new value %s",
               operation.getTransaction(),
               operation.getVariable().toString(),
-              operation.getWritesToValue().toString()));
+              operation.getWritesToValue().toString());
+          System.out.println(outputMessage);
+          IOUtils.writeToOutputFile(outputMessage);
         }
         break;
       default:
@@ -417,6 +423,7 @@ public class TransactionManager {
       sortedVariables.forEach((key, value) ->
           stringBuilder.append("x").append(key).append(": ").append(value).append(", "));
       System.out.println(stringBuilder);
+      IOUtils.writeToOutputFile(stringBuilder.toString());
     }
   }
 
@@ -468,8 +475,10 @@ public class TransactionManager {
     Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(var) :
         site.getDataManager().getCurValue(var);
     if (transaction.getTransactionStatus() == TransactionStatus.ACTIVE) {
-      System.out.println(String.format("Transaction %s can read variable %s, the value is %s",
-          transaction.getName(), "x" + var, val));
+      String outputMessgae = String.format("Transaction %s can read variable %s, the value is %s",
+          transaction.getName(), "x" + var, val);
+      System.out.println(outputMessgae);
+      IOUtils.writeToOutputFile(outputMessgae);
     }
   }
 

@@ -1,6 +1,10 @@
 package cs.nyu.edu.adb;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -17,16 +21,19 @@ public class IOUtils {
   public static final String DUMP = "dump";
   public static final String FAIL = "fail";
   public static final String RECOVER = "recover";
-  private String fileName;
-  List<Operation> operations;
+  public static String inputFile;
+  public static String outputFile;
+  public List<Operation> operations;
 
-  public IOUtils(String fileName) {
-    this.fileName = fileName;
+  public IOUtils() {
+
   }
 
   public void parseFile() {
-    try(Stream<String> stream = Files.lines(Paths.get(fileName))) {
-      this.operations = stream.map(line -> {
+    try(Stream<String> stream = Files.lines(Paths.get(inputFile))) {
+      this.operations = stream
+          .filter(line -> !line.startsWith("//"))
+          .map(line -> {
         String[] separateStrings = line.trim().split("\\(|\\)|,");
         if(separateStrings[0].equals(BEGIN)
             || separateStrings[0].equals(END)
@@ -57,6 +64,32 @@ public class IOUtils {
           throw new UnsupportedOperationException("This operation is not being supported");
         }
       }).collect(Collectors.toList());
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  public static void createOutputFile() throws IOException{
+    if(inputFile == null) {
+      throw new IOException("Should provide a input file");
+    }
+    String[] filePath = inputFile.split("/");
+    StringBuilder outfile = new StringBuilder()
+        .append(System.getProperty("user.dir"))
+        .append("/TestOutput/")
+        .append(filePath[filePath.length - 1]);
+    IOUtils.outputFile = outfile.toString();
+    File file = new File(outputFile);
+    if(Files.exists(Paths.get(outfile.toString()))) {
+      file.delete();
+    }
+  }
+
+  public static void writeToOutputFile(String str) {
+    try(FileWriter fw = new FileWriter(outputFile, true);
+        BufferedWriter bw = new BufferedWriter(fw);
+        PrintWriter out = new PrintWriter(bw)) {
+      out.println(str);
     } catch (IOException e) {
       e.printStackTrace();
     }
