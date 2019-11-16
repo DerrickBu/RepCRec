@@ -3,34 +3,34 @@ package cs.nyu.edu.adb;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 public class DataManager {
 
   //variable name -> (last commited value, curvalue)
-  private Map<Integer, Pair<Integer, Integer>> variables;
+  private Map<Integer, ImmutablePair<Integer, Integer>> variables;
 
   public DataManager() {
     variables = new HashMap<>();
   }
 
   public void insertValue(Integer variable, Integer curvalue) {
-    variables.put(variable, new Pair<>(curvalue, curvalue));
+    variables.put(variable, new ImmutablePair<>(curvalue, curvalue));
   }
 
   public void updateValue(Integer variable, Integer updateValue) {
     Integer committedValue = variables.get(variable).getKey();
-    variables.put(variable, new Pair<>(committedValue, updateValue));
+    variables.put(variable, new ImmutablePair<>(committedValue, updateValue));
   }
 
   public void updateToCommittedValue(Integer variable) {
     Integer committedValue = variables.get(variable).getKey();
-    variables.put(variable, new Pair<>(committedValue, committedValue));
+    variables.put(variable, new ImmutablePair<>(committedValue, committedValue));
   }
 
   public void updateToCurValue(Integer variable) {
     Integer curValue = variables.get(variable).getValue();
-    variables.put(variable, new Pair<>(curValue, curValue));
+    variables.put(variable, new ImmutablePair<>(curValue, curValue));
   }
 
   public Integer getCurValue(Integer variable) {
