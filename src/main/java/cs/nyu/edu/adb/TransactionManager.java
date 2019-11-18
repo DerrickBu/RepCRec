@@ -131,6 +131,32 @@ public class TransactionManager {
   }
 
   /**
+   *
+   * @param operation
+   * @return
+   */
+  private boolean hashWriteWaiting(Operation operation) {
+    Integer variable = operation.getVariable();
+    if(waitingOperations.containsKey(variable)
+        && !waitingOperations.get(variable).contains(operation)
+        && containsWriteOperation(waitingOperations.get(variable))) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   *
+   * @param operations
+   * @return
+   */
+  private boolean containsWriteOperation(List<Operation> operations) {
+    operations.stream().filter(operation -> operation.getName().equals(IOUtils.WRITE));
+    return operations.size() > 0;
+  }
+
+  /**
    * Create Transaction object when a new transaction begins
    * @param operation given to get the transaction name
    * @param isReadOnly If this transaction is read only
@@ -312,6 +338,10 @@ public class TransactionManager {
       blockOperation(site, variable, operation, transactionID, true);
       return false;
     } else {
+//      if(hashWriteWaiting(operation)) {
+//        blockOperation(site, variable, operation, transactionID, true);
+//        return false;
+//      }
       readVariable(site, variable, false, transaction);
       return true;
     }
@@ -475,10 +505,10 @@ public class TransactionManager {
     Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(var) :
         site.getDataManager().getCurValue(var);
     if (transaction.getTransactionStatus() == TransactionStatus.ACTIVE) {
-      String outputMessgae = String.format("Transaction %s can read variable %s, the value is %s",
+      String outputMessage = String.format("Transaction %s can read variable %s, the value is %s",
           transaction.getName(), "x" + var, val);
-      System.out.println(outputMessgae);
-      IOUtils.writeToOutputFile(outputMessgae);
+      System.out.println(outputMessage);
+      IOUtils.writeToOutputFile(outputMessage);
     }
   }
 
@@ -486,35 +516,19 @@ public class TransactionManager {
    * Block a write operation
    * Put this operation to waiting list and wait for graph used for deadlock detection
    * @param site used to get lock table
-   * @param var used to put operation to correct list
+   * @param variable used to put operation to correct list
    * @param operation given to put into blocking lists
    * @param transactionID given to build wait for graph
    */
   private void blockWrite(
       Site site,
-      Integer var,
+      Integer variable,
       Operation operation,
       Integer transactionID) {
     if (!site.isDown()) {
-      if (waitingOperations.containsKey(var)) {
-        waitingOperations.get(var).add(operation);
-      } else {
-        waitingOperations.put(var, new ArrayList<>());
-        waitingOperations.get(var).add(operation);
-      }
-      if (site.getLockManager().getReadLocks().containsKey(var)) {
-        site.getLockManager().getReadLocks().get(var).forEach(t -> {
-          if (!t.equals(transactionID)) {
-            if (waitsForGraph.containsKey(transactionID)) {
-              waitsForGraph.get(transactionID).add(t);
-            } else {
-              waitsForGraph.put(transactionID, new ArrayList<>());
-              waitsForGraph.get(transactionID).add(t);
-            }
-          }
-        });
-      }
-      checkWriteLocks(site, var, transactionID);
+      putToWaitingOperations(variable, operation);
+      checkReadLocks(site, variable, transactionID);
+      checkWriteLocks(site, variable, transactionID);
     }
   }
 
@@ -532,15 +546,42 @@ public class TransactionManager {
       Operation operation,
       Integer transactionID) {
     if (!site.isDown()) {
-      if (waitingOperations.containsKey(variable)) {
-        if (!waitingOperations.get(variable).contains(operation)) {
-          waitingOperations.get(variable).add(operation);
-        }
-      } else {
-        waitingOperations.put(variable, new ArrayList<>());
+      putToWaitingOperations(variable, operation);
+      checkWriteLocks(site, variable, transactionID);
+    }
+  }
+
+  /**
+   * Put an operation to its corresponding waiting list based on variable
+   * @param variable this operation is waiting for
+   * @param operation which should be blocked
+   */
+  private void putToWaitingOperations(Integer variable, Operation operation) {
+    if (waitingOperations.containsKey(variable)) {
+      if (!waitingOperations.get(variable).contains(operation)) {
         waitingOperations.get(variable).add(operation);
       }
-      checkWriteLocks(site, variable, transactionID);
+    } else {
+      waitingOperations.put(variable, new ArrayList<>());
+      waitingOperations.get(variable).add(operation);
+    }
+  }
+
+  /**
+   * Build waiting graph
+   * @param waitForTransaction which is blocking transactionID
+   * @param transactionID which need to wait waitForTransaction
+   */
+  private void putToWaitingGraph(Integer waitForTransaction, Integer transactionID) {
+    if (!waitForTransaction.equals(transactionID)) {
+      if (waitsForGraph.containsKey(transactionID)) {
+        if (!waitsForGraph.get(transactionID).contains(waitForTransaction)) {
+          waitsForGraph.get(transactionID).add(waitForTransaction);
+        }
+      } else {
+        waitsForGraph.put(transactionID, new ArrayList<>());
+        waitsForGraph.get(transactionID).add(waitForTransaction);
+      }
     }
   }
 
@@ -550,21 +591,30 @@ public class TransactionManager {
    * @param var given to check correct write lock
    * @param transactionID given to put in graph
    */
-  private void checkWriteLocks(Site site,
+  private void checkWriteLocks(
+      Site site,
       Integer var,
       Integer transactionID) {
     if (site.getLockManager().getWriteLock().containsKey(var)) {
       Integer t = site.getLockManager().getWriteLock().get(var);
-      if (!t.equals(transactionID)) {
-        if (waitsForGraph.containsKey(transactionID)) {
-          if (!waitsForGraph.get(transactionID).contains(t)) {
-            waitsForGraph.get(transactionID).add(t);
-          }
-        } else {
-          waitsForGraph.put(transactionID, new ArrayList<>());
-          waitsForGraph.get(transactionID).add(t);
-        }
-      }
+      putToWaitingGraph(t, transactionID);
+    }
+  }
+
+  /**
+   * Check read locks in order to put transaction to wait for graph
+   * @param site give to get lock table
+   * @param var given to check correct write lock
+   * @param transactionID given to put in graph
+   */
+  private void checkReadLocks(
+      Site site,
+      Integer var,
+      Integer transactionID) {
+    if (site.getLockManager().getReadLocks().containsKey(var)) {
+      site.getLockManager().getReadLocks().get(var).forEach(t -> {
+        putToWaitingGraph(t, transactionID);
+      });
     }
   }
 
