@@ -38,27 +38,27 @@ public class IOUtils {
         if(separateStrings[0].equals(BEGIN)
             || separateStrings[0].equals(END)
             || separateStrings[0].equals(BEGIN_RO)) {
-          return new Operation.Builder(separateStrings[0])
-              .transaction(separateStrings[1])
+          return new Operation.Builder(separateStrings[0].trim())
+              .transaction(separateStrings[1].trim())
               .build();
         } else if(separateStrings[0].equals(DUMP)){
-          return new Operation.Builder(separateStrings[0])
+          return new Operation.Builder(separateStrings[0].trim())
               .build();
         } else if(separateStrings[0].equals(READ)) {
-          return new Operation.Builder(separateStrings[0])
-              .transaction(separateStrings[1])
-              .variable(Integer.valueOf(separateStrings[2].substring(1)))
+          return new Operation.Builder(separateStrings[0].trim())
+              .transaction(separateStrings[1].trim())
+              .variable(Integer.valueOf(separateStrings[2].trim().substring(1)))
               .build();
         } else if(separateStrings[0].equals(WRITE)) {
-          return new Operation.Builder(separateStrings[0])
-              .transaction(separateStrings[1])
-              .variable(Integer.valueOf(separateStrings[2].substring(1)))
-              .writesToValue(Integer.valueOf(separateStrings[3]))
+          return new Operation.Builder(separateStrings[0].trim())
+              .transaction(separateStrings[1].trim())
+              .variable(Integer.valueOf(separateStrings[2].trim().substring(1)))
+              .writesToValue(Integer.valueOf(separateStrings[3].trim()))
               .build();
         } else if(separateStrings[0].equals(FAIL)
             || separateStrings[0].equals(RECOVER)) {
-          return new Operation.Builder(separateStrings[0])
-              .site(Integer.valueOf(separateStrings[1]))
+          return new Operation.Builder(separateStrings[0].trim())
+              .site(Integer.valueOf(separateStrings[1].trim()))
               .build();
         } else {
           throw new UnsupportedOperationException("This operation is not being supported");

@@ -309,10 +309,10 @@ public class TransactionManager {
       Operation operation) {
     Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
     for(int i = 1; i <= 10; ++i) {
-      if(!sites.get(i).isDown() && sites.get(i).getLockManager()
+      Site site = sites.get(i);
+      if(!site.isDown() && site.getLockManager()
           .canRead(variable, transactionID)) {
-        readVariable(sites.get(i), variable, false, transaction);
-        return true;
+        return canReadPreventWriteStarvation(site, variable, operation, transactionID, transaction);
       }
     }
     sites.stream().skip(1).forEach(site ->
@@ -338,13 +338,34 @@ public class TransactionManager {
       blockOperation(site, variable, operation, transactionID, true);
       return false;
     } else {
-//      if(hashWriteWaiting(operation)) {
-//        blockOperation(site, variable, operation, transactionID, true);
-//        return false;
-//      }
-      readVariable(site, variable, false, transaction);
-      return true;
+      return canReadPreventWriteStarvation(site, variable, operation, transactionID, transaction);
     }
+  }
+
+  /**
+   * Check if we could read variable with consideration of write starvation
+   * @param site given to check lock table
+   * @param variable used to block operation
+   * @param operation used to be blocked if there's write starvation
+   * @param transactionID used to build wait for graph
+   * @param transaction used to read variable if there's not write starvation
+   * @return true if we could read a variable
+   * false if there's write starvation and we need to block that operation
+   */
+  private boolean canReadPreventWriteStarvation(Site site,
+      Integer variable,
+      Operation operation,
+      Integer transactionID,
+      Transaction transaction) {
+    if(!site.getLockManager().getWriteLock().containsKey(variable)
+        && hashWriteWaiting(operation)) {
+      putToWaitingOperations(variable, operation);
+      checkReadLocks(site, variable, transactionID);
+      return false;
+    }
+    site.getLockManager().addReadLock(variable, transactionID);
+    readVariable(site, variable, false, transaction);
+    return true;
   }
 
   /**
@@ -493,20 +514,20 @@ public class TransactionManager {
   /**
    * Read and print value of a variable
    * @param site given to read variable
-   * @param var given to read
+   * @param variable given to read
    * @param readCommittedValue if we should read committed value or current value
    * @param transaction given for print important debugging information
    * @return
    */
   private void readVariable(Site site,
-      Integer var,
+      Integer variable,
       boolean readCommittedValue,
       Transaction transaction) {
-    Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(var) :
-        site.getDataManager().getCurValue(var);
+    Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(variable) :
+        site.getDataManager().getCurValue(variable);
     if (transaction.getTransactionStatus() == TransactionStatus.ACTIVE) {
       String outputMessage = String.format("Transaction %s can read variable %s, the value is %s",
-          transaction.getName(), "x" + var, val);
+          transaction.getName(), "x" + variable, val);
       System.out.println(outputMessage);
       IOUtils.writeToOutputFile(outputMessage);
     }

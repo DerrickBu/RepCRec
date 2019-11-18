@@ -26,15 +26,18 @@ public class LockManager {
 
   public boolean canRead(Integer variable, Integer transaction) {
     if(!writeLock.containsKey(variable) || writeLock.get(variable).equals(transaction)) {
-      if(!readLocks.containsKey(variable)) {
-        readLocks.put(variable, new ArrayList<>());
-        readLocks.get(variable).add(transaction);
-      } else if(!readLocks.get(variable).contains(transaction)) {
-        readLocks.get(variable).add(transaction);
-      }
       return true;
     } else {
       return false;
+    }
+  }
+
+  public void addReadLock(Integer variable, Integer transaction) {
+    if(!readLocks.containsKey(variable)) {
+      readLocks.put(variable, new ArrayList<>());
+      readLocks.get(variable).add(transaction);
+    } else if(!readLocks.get(variable).contains(transaction)) {
+      readLocks.get(variable).add(transaction);
     }
   }
 
