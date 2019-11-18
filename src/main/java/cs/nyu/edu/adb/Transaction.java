@@ -10,11 +10,9 @@ public class Transaction {
   private Operation currentOperation;
   private TransactionStatus transactionStatus;
   private boolean isReadOnly;
-  public List<Operation> waitingOperations;
 
   public Transaction(String name, boolean isReadOnly, Integer timeStamp) {
     transactionStatus = TransactionStatus.ACTIVE;
-    waitingOperations = new ArrayList<>();
     this.name = name;
     this.isReadOnly = isReadOnly;
     this.timeStamp = timeStamp;

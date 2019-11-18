@@ -107,7 +107,7 @@ public class TransactionManager {
         break;
       case IOUtils.WRITE:
         if(write(operation)) {
-          IOUtils.canWriteOuputMessage(operation);
+          IOUtils.canWriteOutputMessage(operation);
         } else {
           IOUtils.cannotWriteOutputMessage(operation);
         }
@@ -118,9 +118,9 @@ public class TransactionManager {
   }
 
   /**
-   *
-   * @param operation
-   * @return
+   * Check if there's write operation waiting for the same variable
+   * @param operation given to get variable
+   * @return true if there's write operation waiting for the given variable, false if there's not
    */
   private boolean hashWriteWaiting(Operation operation) {
     Integer variable = operation.getVariable();
@@ -134,9 +134,9 @@ public class TransactionManager {
   }
 
   /**
-   *
-   * @param operations
-   * @return
+   * Check if there's write operation in the waiting list
+   * @param operations given to check if there's waiting operation
+   * @return true if there's waiting write operation in the list, false if there's not
    */
   private boolean containsWriteOperation(List<Operation> operations) {
     operations.stream().filter(operation -> operation.getName().equals(IOUtils.WRITE));
@@ -339,7 +339,8 @@ public class TransactionManager {
    * @return true if we could read a variable
    * false if there's write starvation and we need to block that operation
    */
-  private boolean canReadPreventWriteStarvation(Site site,
+  private boolean canReadPreventWriteStarvation(
+      Site site,
       Integer variable,
       Operation operation,
       Integer transactionID,
@@ -506,7 +507,8 @@ public class TransactionManager {
    * @param transaction given for print important debugging information
    * @return
    */
-  private void readVariable(Site site,
+  private void readVariable(
+      Site site,
       Integer variable,
       boolean readCommittedValue,
       Transaction transaction) {
@@ -824,7 +826,7 @@ public class TransactionManager {
             }
           } else if (waitingOperation.getName().equals(IOUtils.WRITE)) {
             if (write(waitingOperation)) {
-              IOUtils.canWriteOuputMessage(waitingOperation);
+              IOUtils.canWriteOutputMessage(waitingOperation);
               waitingOperation = getOneWaitingOperation(holdVariable);
             } else {
               flag = false;

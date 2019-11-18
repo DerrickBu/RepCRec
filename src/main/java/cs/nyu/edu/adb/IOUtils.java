@@ -29,6 +29,10 @@ public class IOUtils {
 
   }
 
+  /**
+   * Parse a input file line by line to a list of operations
+   * Could have blank after each segment
+   */
   public void parseFile() {
     try(Stream<String> stream = Files.lines(Paths.get(inputFile))) {
       this.operations = stream
@@ -69,6 +73,11 @@ public class IOUtils {
     }
   }
 
+  /**
+   * Create an output file under 'TestOutput' directory
+   * The name of the output file would be the same as the name of input file
+   * @throws IOException if the input file is null
+   */
   public static void createOutputFile() throws IOException{
     if(inputFile == null) {
       throw new IOException("Should provide a input file");
@@ -85,6 +94,10 @@ public class IOUtils {
     }
   }
 
+  /**
+   * Write a string to the output file, one string a line
+   * @param str which will be written to the output file
+   */
   public static void writeToOutputFile(String str) {
     try(FileWriter fw = new FileWriter(outputFile, true);
         BufferedWriter bw = new BufferedWriter(fw);
@@ -95,7 +108,11 @@ public class IOUtils {
     }
   }
 
-  public static void canWriteOuputMessage(Operation operation) {
+  /**
+   * Print and write message to output file if we could write variable to a new value
+   * @param operation used to get important message like variable name and etc
+   */
+  public static void canWriteOutputMessage(Operation operation) {
     String outputMessage = String.format("Transaction %s can write variable %s to new value %s",
         operation.getTransaction(),
         operation.getVariable().toString(),
@@ -104,6 +121,10 @@ public class IOUtils {
     IOUtils.writeToOutputFile(outputMessage);
   }
 
+  /**
+   * Print and write message to output file if we could not write variable to a new value
+   * @param operation used to get important message like variable name and etc
+   */
   public static void cannotWriteOutputMessage(Operation operation) {
     String outputMessage = String.format("Transaction %s cannot write variable %s to new value %s",
         operation.getTransaction(),
@@ -113,6 +134,12 @@ public class IOUtils {
     IOUtils.writeToOutputFile(outputMessage);
   }
 
+  /**
+   * Print and write message to output file if we could read variable to a new value
+   * @param transaction used to get transaction name
+   * @param variable used to get variable name
+   * @param value used to get value of the variable
+   */
   public static void canReadOutputMessage(
       Transaction transaction,
       Integer variable,
@@ -123,6 +150,10 @@ public class IOUtils {
     IOUtils.writeToOutputFile(outputMessage);
   }
 
+  /**
+   * Print and write message to output file if we could not read variable to a new value
+   * @param operation used to get important message like variable name and etc
+   */
   public static void cannotReadOutputMessage(Operation operation) {
     String outputMessage = String.format("Transaction %s cannot read variable %s",
         operation.getTransaction(), operation.getVariable().toString());
