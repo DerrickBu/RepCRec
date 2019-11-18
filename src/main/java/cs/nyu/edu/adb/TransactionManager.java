@@ -99,10 +99,7 @@ public class TransactionManager {
         break;
       case IOUtils.READ:
         if(!read(operation)) {
-          String outputMessage = String.format("Transaction %s cannot read variable %s",
-              operation.getTransaction(), operation.getVariable().toString());
-          System.out.println(outputMessage);
-          IOUtils.writeToOutputFile(outputMessage);
+          IOUtils.cannotReadOutputMessage(operation);
         }
         break;
       case IOUtils.RECOVER:
@@ -110,19 +107,9 @@ public class TransactionManager {
         break;
       case IOUtils.WRITE:
         if(write(operation)) {
-          String outputMessage = String.format("Transaction %s can write variable %s to new value %s",
-              operation.getTransaction(),
-              operation.getVariable().toString(),
-              operation.getWritesToValue().toString());
-          System.out.println(outputMessage);
-          IOUtils.writeToOutputFile(outputMessage);
+          IOUtils.canWriteOuputMessage(operation);
         } else {
-          String outputMessage = String.format("Transaction %s cannot write variable %s to new value %s",
-              operation.getTransaction(),
-              operation.getVariable().toString(),
-              operation.getWritesToValue().toString());
-          System.out.println(outputMessage);
-          IOUtils.writeToOutputFile(outputMessage);
+          IOUtils.cannotWriteOutputMessage(operation);
         }
         break;
       default:
@@ -393,7 +380,7 @@ public class TransactionManager {
         blockOperation(site, variable, operation, transactionID, false);
         return false;
       } else {
-        site.getLockManager().write(variable, transactionID);
+        site.getLockManager().addWriteLock(variable, transactionID);
         site.getDataManager().updateValue(variable, value);
         return true;
       }
@@ -402,7 +389,7 @@ public class TransactionManager {
         return false;
       } else {
         sites.stream().skip(1).forEach(site -> {
-          site.getLockManager().write(variable, transactionID);
+          site.getLockManager().addWriteLock(variable, transactionID);
           site.getDataManager().updateValue(variable, value);
         });
         return true;
@@ -523,13 +510,10 @@ public class TransactionManager {
       Integer variable,
       boolean readCommittedValue,
       Transaction transaction) {
-    Integer val = readCommittedValue ? site.getDataManager().getCommittedValue(variable) :
+    Integer value = readCommittedValue ? site.getDataManager().getCommittedValue(variable) :
         site.getDataManager().getCurValue(variable);
     if (transaction.getTransactionStatus() == TransactionStatus.ACTIVE) {
-      String outputMessage = String.format("Transaction %s can read variable %s, the value is %s",
-          transaction.getName(), "x" + variable, val);
-      System.out.println(outputMessage);
-      IOUtils.writeToOutputFile(outputMessage);
+      IOUtils.canReadOutputMessage(transaction, variable, value);
     }
   }
 
@@ -840,6 +824,7 @@ public class TransactionManager {
             }
           } else if (waitingOperation.getName().equals(IOUtils.WRITE)) {
             if (write(waitingOperation)) {
+              IOUtils.canWriteOuputMessage(waitingOperation);
               waitingOperation = getOneWaitingOperation(holdVariable);
             } else {
               flag = false;

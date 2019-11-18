@@ -41,7 +41,7 @@ public class LockManager {
     }
   }
 
-  public void write(Integer variable, Integer transaction) {
+  public void addWriteLock(Integer variable, Integer transaction) {
     writeLock.put(variable, transaction);
   }
 

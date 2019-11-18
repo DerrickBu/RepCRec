@@ -95,4 +95,39 @@ public class IOUtils {
     }
   }
 
+  public static void canWriteOuputMessage(Operation operation) {
+    String outputMessage = String.format("Transaction %s can write variable %s to new value %s",
+        operation.getTransaction(),
+        operation.getVariable().toString(),
+        operation.getWritesToValue().toString());
+    System.out.println(outputMessage);
+    IOUtils.writeToOutputFile(outputMessage);
+  }
+
+  public static void cannotWriteOutputMessage(Operation operation) {
+    String outputMessage = String.format("Transaction %s cannot write variable %s to new value %s",
+        operation.getTransaction(),
+        operation.getVariable().toString(),
+        operation.getWritesToValue().toString());
+    System.out.println(outputMessage);
+    IOUtils.writeToOutputFile(outputMessage);
+  }
+
+  public static void canReadOutputMessage(
+      Transaction transaction,
+      Integer variable,
+      Integer value) {
+    String outputMessage = String.format("Transaction %s can read variable %s, the value is %s",
+        transaction.getName(), "x" + variable, value);
+    System.out.println(outputMessage);
+    IOUtils.writeToOutputFile(outputMessage);
+  }
+
+  public static void cannotReadOutputMessage(Operation operation) {
+    String outputMessage = String.format("Transaction %s cannot read variable %s",
+        operation.getTransaction(), operation.getVariable().toString());
+    System.out.println(outputMessage);
+    IOUtils.writeToOutputFile(outputMessage);
+  }
+
 }
