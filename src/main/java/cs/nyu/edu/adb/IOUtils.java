@@ -109,16 +109,73 @@ public class IOUtils {
   }
 
   /**
+   * Print and write output message when we begin a transaction
+   * @param operation used to get transaction name
+   */
+  public static void beginOutputMessage(Operation operation) {
+    String outputMessage = String.format("Transaction %s begins",
+        operation.getTransaction());
+    printAndWrite(outputMessage);
+  }
+
+  /**
+   * Print and write output message when we begin a read-only transaction
+   * @param operation used to get transaction name
+   */
+  public static void beginROOutputMessage(Operation operation) {
+    String outputMessage = String.format("Read-only transaction %s begins",
+        operation.getTransaction());
+    printAndWrite(outputMessage);
+  }
+
+  /**
+   * Print and write output message when a site fails
+   * @param operation used to get site index
+   */
+  public static void failOutputMessage(Operation operation) {
+    String outputMessage = String.format("Site %s fails",
+        operation.getSite());
+    printAndWrite(outputMessage);
+  }
+
+  /**
+   * Print and write output message when a site recovers
+   * @param operation used to get site index
+   */
+  public static void recoverOutputMessage(Operation operation) {
+    String outputMessage = String.format("Site %s recovers",
+        operation.getSite());
+    printAndWrite(outputMessage);
+  }
+
+  /**
+   * Print and write output message when we abort a transaction
+   * @param transactionID info to print and write
+   */
+  public static void abortOutputMessage(Integer transactionID) {
+    String outputMessage = String.format("Abort transaction %s",
+        "T" + transactionID);
+    printAndWrite(outputMessage);
+  }
+
+  /**
+   * Print and write output message when we commit a transaction
+   * @param transactionID info to print and write
+   */
+  public static void commitOutputMessage(Integer transactionID) {
+    String outputMessage = String.format("Commit transaction %s",
+        "T" + transactionID);
+    printAndWrite(outputMessage);
+  }
+
+  /**
    * Print and write message to output file if we could write variable to a new value
    * @param operation used to get important message like variable name and etc
    */
   public static void canWriteOutputMessage(Operation operation) {
-    String outputMessage = String.format("Transaction %s can write variable %s to new value %s",
-        operation.getTransaction(),
-        operation.getVariable().toString(),
-        operation.getWritesToValue().toString());
-    System.out.println(outputMessage);
-    IOUtils.writeToOutputFile(outputMessage);
+    String outputMessage = buildWriteOutputString(operation,
+        "Transaction %s can write variable %s to new value %s");
+    printAndWrite(outputMessage);
   }
 
   /**
@@ -126,12 +183,9 @@ public class IOUtils {
    * @param operation used to get important message like variable name and etc
    */
   public static void cannotWriteOutputMessage(Operation operation) {
-    String outputMessage = String.format("Transaction %s cannot write variable %s to new value %s",
-        operation.getTransaction(),
-        operation.getVariable().toString(),
-        operation.getWritesToValue().toString());
-    System.out.println(outputMessage);
-    IOUtils.writeToOutputFile(outputMessage);
+    String outputMessage = buildWriteOutputString(operation,
+        "Transaction %s cannot write variable %s to new value %s");
+    printAndWrite(outputMessage);
   }
 
   /**
@@ -146,8 +200,7 @@ public class IOUtils {
       Integer value) {
     String outputMessage = String.format("Transaction %s can read variable %s, the value is %s",
         transaction.getName(), "x" + variable, value);
-    System.out.println(outputMessage);
-    IOUtils.writeToOutputFile(outputMessage);
+    printAndWrite(outputMessage);
   }
 
   /**
@@ -157,8 +210,29 @@ public class IOUtils {
   public static void cannotReadOutputMessage(Operation operation) {
     String outputMessage = String.format("Transaction %s cannot read variable %s",
         operation.getTransaction(), operation.getVariable().toString());
+    printAndWrite(outputMessage);
+  }
+
+  /**
+   * Build output message for write operation
+   * @param operation used to get important messages like transaction name and etc.
+   * @param str output message format
+   * @return Well built output message
+   */
+  private static String buildWriteOutputString(Operation operation, String str) {
+    return String.format(str,
+        operation.getTransaction(),
+        operation.getVariable().toString(),
+        operation.getWritesToValue().toString());
+  }
+
+  /**
+   * Print the output message to console and write it to output file
+   * @param outputMessage given to print and write
+   */
+  private static void printAndWrite(String outputMessage) {
     System.out.println(outputMessage);
-    IOUtils.writeToOutputFile(outputMessage);
+    writeToOutputFile(outputMessage);
   }
 
 }

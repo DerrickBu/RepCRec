@@ -74,18 +74,21 @@ public class TransactionManager {
   private void executeOperation(Operation operation) {
     String op = operation.getName();
     currentTime = currentTime + 1;
+    Integer transactionID;
     switch (op) {
       case IOUtils.BEGIN:
+        IOUtils.beginOutputMessage(operation);
         allTransactions.add(initTransaction(operation, false, currentTime));
         break;
       case IOUtils.BEGIN_RO:
+        IOUtils.beginROOutputMessage(operation);
         allTransactions.add(initTransaction(operation, true, currentTime));
         break;
       case IOUtils.DUMP:
         dump();
         break;
       case IOUtils.END:
-        Integer transactionID = Integer.valueOf(operation.getTransaction().substring(1));
+        transactionID = Integer.valueOf(operation.getTransaction().substring(1));
         if(getTransaction(operation).getTransactionStatus()
             == TransactionStatus.SHOULD_BE_ABORT) {
           abort(transactionID);
@@ -95,6 +98,7 @@ public class TransactionManager {
         }
         break;
       case IOUtils.FAIL:
+        IOUtils.failOutputMessage(operation);
         fail(operation.getSite());
         break;
       case IOUtils.READ:
@@ -103,13 +107,21 @@ public class TransactionManager {
         }
         break;
       case IOUtils.RECOVER:
+        IOUtils.recoverOutputMessage(operation);
         recover(operation.getSite());
         break;
       case IOUtils.WRITE:
+        transactionID = Integer.valueOf(operation.getTransaction().substring(1));
         if(write(operation)) {
           IOUtils.canWriteOutputMessage(operation);
         } else {
-          IOUtils.cannotWriteOutputMessage(operation);
+          // Check prevent print message bug because of deadlock
+          Integer variable = operation.getVariable();
+          if (waitingOperations.containsKey(variable)
+              && waitingOperations.get(variable).contains(operation)
+              || waitingSites.containsKey(transactionID)) {
+            IOUtils.cannotWriteOutputMessage(operation);
+          }
         }
         break;
       default:
@@ -159,6 +171,7 @@ public class TransactionManager {
    * @param transactionID given to abort
    */
   private void abort(Integer transactionID) {
+    IOUtils.abortOutputMessage(transactionID);
     commitOrAbort(transactionID, false);
   }
 
@@ -167,6 +180,7 @@ public class TransactionManager {
    * @param transactionID given to commit
    */
   private void commit(Integer transactionID) {
+    IOUtils.commitOutputMessage(transactionID);
     commitOrAbort(transactionID, true);
   }
 
@@ -721,11 +735,8 @@ public class TransactionManager {
    */
   private void commitOrAbort(Integer transactionID, boolean shouldCommit) {
 
-    // Remove this transaction in waitsForGraph
-    for(Map.Entry<Integer, List<Integer>> entry : waitsForGraph.entrySet()) {
-      entry.getValue().remove(transactionID);
-    }
-    waitsForGraph.entrySet().removeIf(entry -> entry.getKey().equals(transactionID));
+    removeFromWaitsForGraph(transactionID);
+    removeFromWaitingOperations(transactionID);
 
     List<Integer> holdVariables = new ArrayList<>();
     // Iterate all sites and find variables which transaction holds lock on, and remove locks.
@@ -744,6 +755,29 @@ public class TransactionManager {
       releaseAllLocks(site, transactionID);
     }
     wakeBlockOperations(holdVariables);
+  }
+
+  /**
+   * Remove this transaction from waitsForGraph
+   * @param transactionID given to remove
+   */
+  private void removeFromWaitsForGraph(Integer transactionID) {
+    for(Map.Entry<Integer, List<Integer>> entry : waitsForGraph.entrySet()) {
+      entry.getValue().remove(transactionID);
+    }
+    waitsForGraph.entrySet().removeIf(entry -> entry.getKey().equals(transactionID)
+        || entry.getValue().size() == 0);
+  }
+
+  /**
+   * Remove this transaction from waiting operation lists
+   * @param transactionID given to remove
+   */
+  private void removeFromWaitingOperations(Integer transactionID) {
+    for(Map.Entry<Integer, List<Operation>> entry: waitingOperations.entrySet()) {
+      entry.getValue().removeIf(operation -> operation.getTransaction().equals("T" + transactionID));
+    }
+    waitingOperations.entrySet().removeIf(entry -> entry.getValue().size() == 0);
   }
 
   /**

@@ -1,8 +1,14 @@
+Transaction T1 begins
+Transaction T2 begins
+Transaction T3 begins
 Transaction T1 can read variable x2, the value is 20
 Transaction T2 cannot write variable 2 to new value 500
 Transaction T3 cannot read variable 2
+Commit transaction T1
 Transaction T2 can write variable 2 to new value 500
+Commit transaction T2
 Transaction T3 can read variable x2, the value is 500
+Commit transaction T3
 site 1 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
 site 2 - x1: 10, x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x11: 110, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
 site 3 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 

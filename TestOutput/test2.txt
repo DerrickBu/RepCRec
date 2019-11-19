@@ -1,28 +1,13 @@
 Transaction T1 begins
 Transaction T2 begins
-Transaction T3 begins
-Read-only transaction T4 begins
-Transaction T5 begins
-Transaction T1 can write variable 4 to new value 700
-Transaction T2 can write variable 7 to new value 800
-Transaction T3 cannot read variable 7
-Transaction T4 can read variable x4, the value is 40
-Transaction T5 cannot read variable 4
-Transaction T2 cannot read variable 4
-Site 9 fails
+Transaction T1 can write variable 1 to new value 300
+Site 2 fails
+Transaction T1 cannot write variable 1 to new value 400
+Site 2 recovers
+Transaction T2 cannot read variable 1
 Abort transaction T1
-Transaction T5 can read variable x4, the value is 40
-Transaction T2 can read variable x4, the value is 40
-Transaction T5 cannot write variable 7 to new value 900
-Transaction T2 can read variable x7, the value is 800
+Transaction T2 can read variable x1, the value is 10
 Commit transaction T2
-Transaction T3 can read variable x7, the value is 800
-Transaction T4 can read variable x7, the value is 800
-Commit transaction T3
-Transaction T5 can write variable 7 to new value 900
-Commit transaction T5
-Transaction T4 can read variable x7, the value is 900
-Commit transaction T4
 site 1 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
 site 2 - x1: 10, x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x11: 110, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
 site 3 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
@@ -30,6 +15,6 @@ site 4 - x2: 20, x3: 30, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x13: 130, x
 site 5 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
 site 6 - x2: 20, x4: 40, x5: 50, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x15: 150, x16: 160, x18: 180, x20: 200, 
 site 7 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 8 - x2: 20, x4: 40, x6: 60, x7: 900, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x17: 170, x18: 180, x20: 200, 
+site 8 - x2: 20, x4: 40, x6: 60, x7: 70, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x17: 170, x18: 180, x20: 200, 
 site 9 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
 site 10 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
