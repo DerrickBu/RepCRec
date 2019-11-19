@@ -21,6 +21,9 @@ public class IOUtils {
   public static final String DUMP = "dump";
   public static final String FAIL = "fail";
   public static final String RECOVER = "recover";
+  public static final String OUTPUT_DIRECTORY = "/TestOutput/";
+  public static final String REGEX = "/";
+  public static final String USER_DIR = "user.dir";
   public static String inputFile;
   public static String outputFile;
   public List<Operation> operations;
@@ -82,10 +85,10 @@ public class IOUtils {
     if(inputFile == null) {
       throw new IOException("Should provide a input file");
     }
-    String[] filePath = inputFile.split("/");
+    String[] filePath = inputFile.split(REGEX);
     StringBuilder outfile = new StringBuilder()
-        .append(System.getProperty("user.dir"))
-        .append("/TestOutput/")
+        .append(System.getProperty(USER_DIR))
+        .append(OUTPUT_DIRECTORY)
         .append(filePath[filePath.length - 1]);
     IOUtils.outputFile = outfile.toString();
     File file = new File(outputFile);
