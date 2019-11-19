@@ -233,7 +233,7 @@ public class IOUtils {
    * Print the output message to console and write it to output file
    * @param outputMessage given to print and write
    */
-  private static void printAndWrite(String outputMessage) {
+  public static void printAndWrite(String outputMessage) {
     System.out.println(outputMessage);
     writeToOutputFile(outputMessage);
   }

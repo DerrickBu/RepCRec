@@ -3,6 +3,7 @@ Transaction T2 begins
 Transaction T1 can write variable 1 to new value 101
 Transaction T2 can write variable 2 to new value 202
 Transaction T1 cannot write variable 2 to new value 102
+DeadLock detected, we will abort the youngest Transaction in deadlock cycle
 Abort transaction T2
 Transaction T1 can write variable 2 to new value 102
 Commit transaction T1

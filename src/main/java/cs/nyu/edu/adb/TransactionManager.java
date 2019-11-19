@@ -645,6 +645,8 @@ public class TransactionManager {
    */
   private void detectDeadLock() {
     if(containsDeadLock()) {
+      IOUtils.printAndWrite("DeadLock detected, "
+          + "we will abort the youngest Transaction in deadlock cycle");
       // Find the youngest transaction
       Integer youngestTransaction = null;
       Integer latestTime = Integer.MIN_VALUE;
