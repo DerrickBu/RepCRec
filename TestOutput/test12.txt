@@ -1,15 +1,15 @@
-Transaction T1 begins
-Transaction T2 begins
-Transaction T3 begins
-Transaction T1 can write variable 1 to new value 5
-Transaction T3 can write variable 2 to new value 32
-Transaction T2 cannot write variable 1 to new value 17
-Commit transaction T1
-Transaction T2 can write variable 1 to new value 17
-Transaction T4 begins
-Transaction T4 can write variable 4 to new value 35
-Transaction T3 can write variable 5 to new value 21
-Transaction T4 cannot write variable 2 to new value 21
+T1 begins
+T2 begins
+T3 begins
+T1 can write variable 1 to new value 5
+T3 can write variable 2 to new value 32
+T2 cannot write variable 1 to new value 17
+T1 commits
+T2 can write variable 1 to new value 17
+T4 begins
+T4 can write variable 4 to new value 35
+T3 can write variable 5 to new value 21
+T4 cannot write variable 2 to new value 21
 DeadLock detected, we will abort the youngest Transaction in deadlock cycle
-Abort transaction T4
-Transaction T3 can write variable 4 to new value 23
+T4 aborts
+T3 can write variable 4 to new value 23

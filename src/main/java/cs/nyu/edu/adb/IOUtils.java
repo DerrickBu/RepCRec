@@ -116,7 +116,7 @@ public class IOUtils {
    * @param operation used to get transaction name
    */
   public static void beginOutputMessage(Operation operation) {
-    String outputMessage = String.format("Transaction %s begins",
+    String outputMessage = String.format("%s begins",
         operation.getTransaction());
     printAndWrite(outputMessage);
   }
@@ -156,7 +156,7 @@ public class IOUtils {
    * @param transactionID info to print and write
    */
   public static void abortOutputMessage(Integer transactionID) {
-    String outputMessage = String.format("Abort transaction %s",
+    String outputMessage = String.format("%s aborts",
         "T" + transactionID);
     printAndWrite(outputMessage);
   }
@@ -166,7 +166,7 @@ public class IOUtils {
    * @param transactionID info to print and write
    */
   public static void commitOutputMessage(Integer transactionID) {
-    String outputMessage = String.format("Commit transaction %s",
+    String outputMessage = String.format("%s commits",
         "T" + transactionID);
     printAndWrite(outputMessage);
   }
@@ -177,7 +177,7 @@ public class IOUtils {
    */
   public static void canWriteOutputMessage(Operation operation) {
     String outputMessage = buildWriteOutputString(operation,
-        "Transaction %s can write variable %s to new value %s");
+        "%s can write variable %s to new value %s");
     printAndWrite(outputMessage);
   }
 
@@ -187,7 +187,7 @@ public class IOUtils {
    */
   public static void cannotWriteOutputMessage(Operation operation) {
     String outputMessage = buildWriteOutputString(operation,
-        "Transaction %s cannot write variable %s to new value %s");
+        "%s cannot write variable %s to new value %s");
     printAndWrite(outputMessage);
   }
 
@@ -201,7 +201,7 @@ public class IOUtils {
       Transaction transaction,
       Integer variable,
       Integer value) {
-    String outputMessage = String.format("Transaction %s can read variable %s, the value is %s",
+    String outputMessage = String.format("%s can read variable %s, the value is %s",
         transaction.getName(), "x" + variable, value);
     printAndWrite(outputMessage);
   }
@@ -211,7 +211,7 @@ public class IOUtils {
    * @param operation used to get important message like variable name and etc
    */
   public static void cannotReadOutputMessage(Operation operation) {
-    String outputMessage = String.format("Transaction %s cannot read variable %s",
+    String outputMessage = String.format("%s cannot read variable %s",
         operation.getTransaction(), operation.getVariable().toString());
     printAndWrite(outputMessage);
   }
