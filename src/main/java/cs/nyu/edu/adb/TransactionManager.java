@@ -647,10 +647,10 @@ public class TransactionManager {
     if(containsDeadLock()) {
       // Find the youngest transaction
       Integer youngestTransaction = null;
-      Integer earliestTime = Integer.MAX_VALUE;
+      Integer latestTime = Integer.MIN_VALUE;
       for(Integer visitedTransaction : visitedTransactions) {
-        if(getTransaction(visitedTransaction).getTimeStamp() < earliestTime) {
-          earliestTime = getTransaction(visitedTransaction).getTimeStamp();
+        if(getTransaction(visitedTransaction).getTimeStamp() > latestTime) {
+          latestTime = getTransaction(visitedTransaction).getTimeStamp();
           youngestTransaction = visitedTransaction;
         }
       }

@@ -1,8 +1,11 @@
 # RepCRec
 
 This project is a course project of Advanced Database System in NYU. 
-
 Professor is Dennis Shaha
+
+We implement a tiny distributed database, complete
+with multi-version concurrency control, deadlock detection, replication, and
+failure recovery
 
 ## Run this project using jar file
 You could run this application directly through the jar file under root directory of the porject
@@ -29,3 +32,22 @@ gradle. For example, if you want to run test case 1, you could simple run comman
 ```$xslt
 ./gradlew run --args='./TestInput/test1.txt'
 ```
+## Algorithm we use
+
+1. We use strict two phase locking (using read and write locks) at each site and validation at commit time.
+
+2. Read-only transactions should use multi-version read consistency.
+
+3. We use DFS to detect deadlock cycle and abort the youngest transaction.
+
+## Attention
+
+1. We will ensure that when a transaction is waiting, it will not receive another operation
+
+2. Our application could prevent write starvation. 
+
+   For example, if requests arrive in the order R(T1,x), R(T2,x), W(T3,x,73), R(T4,x) then,
+   assuming no transaction aborts, first T1 and T2 will share read locks on x, 
+   then T3 will obtain a write lock on x and then T4 a read lock on x. Note that T4 does not skip in front of T3, 
+   as that might result in starvation for writes.
+
