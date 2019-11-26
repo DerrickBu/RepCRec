@@ -1,3 +1,5 @@
+// T1, T2 can both commit
+// T2 can directly write when it wants to since T1 has committed and has no lock on x2
 begin(T1)
 begin(T2)
 R(T1,x2)

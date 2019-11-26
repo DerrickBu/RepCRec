@@ -1,3 +1,5 @@
+// T1 will commit when it ends
+// So T2 will read committed value of x3, which is 33
 begin(T1)
 beginRO(T2)
 R(T2,x1)

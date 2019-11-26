@@ -1,3 +1,5 @@
+// T4 will be aborted in the deadlock cycle
+// T1 will commit when it ends
 begin(T1)
 begin(T2)
 begin(T3)

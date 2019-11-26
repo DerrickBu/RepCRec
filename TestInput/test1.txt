@@ -1,4 +1,5 @@
-// First test
+// T2 is read-only transaction
+// T1, T1 can both commit
 begin(T1)
 beginRO(T2)
 W(T1,x1,101) 

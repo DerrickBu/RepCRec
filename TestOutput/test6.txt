@@ -1,0 +1,21 @@
+T1 begins
+Read-only transaction T2 begins
+T2 can read variable x1, the value is 10
+T2 can read variable x2, the value is 20
+T1 can write variable 3 to new value 33
+T1 commits
+Read-only transaction T3 begins
+T3 can read variable x3, the value is 33
+T2 can read variable x3, the value is 33
+T2 commits
+T3 commits
+site 1 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
+site 2 - x1: 10, x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x11: 110, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
+site 3 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
+site 4 - x2: 20, x3: 33, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x13: 130, x14: 140, x16: 160, x18: 180, x20: 200, 
+site 5 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
+site 6 - x2: 20, x4: 40, x5: 50, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x15: 150, x16: 160, x18: 180, x20: 200, 
+site 7 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
+site 8 - x2: 20, x4: 40, x6: 60, x7: 70, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x17: 170, x18: 180, x20: 200, 
+site 9 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
+site 10 - x2: 20, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 

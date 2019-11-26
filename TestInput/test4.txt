@@ -1,3 +1,5 @@
+// Detect deadlock and abort the youngest transaction T2
+// T1 will commit
 begin(T1)
 begin(T2)
 W(T1,x1,101) 

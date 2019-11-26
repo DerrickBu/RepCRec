@@ -1,3 +1,7 @@
+// T1, T2, T3 can both commit
+// T3 will wait when it reads x4 since T2 has write lock
+// T3 can read x4 after T2 commits, and T3 can commit
+// T1 will read committed value of x2 which is 22
 begin(T3)
 begin(T1)
 begin(T2)

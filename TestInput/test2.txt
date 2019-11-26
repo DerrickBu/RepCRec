@@ -1,3 +1,5 @@
+// T1 will be aborted since site 2 failed
+// T2 could commit, T2 could read x1 after T1 aborts
 begin(T1)
 begin(T2)
 W(T1,x1,300)

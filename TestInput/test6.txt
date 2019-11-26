@@ -1,3 +1,5 @@
+// T1, T2, T3 can both commit
+// T1 will commit when it ends, so T2 and T3 will both read 33 from x3
 begin(T1)
 beginRO(T2)
 R(T2,x1)

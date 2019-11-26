@@ -1,3 +1,5 @@
+// T1 will be aborted since site 9 failed
+// T2, T3, T4, T4 can both commit
 begin(T1)
 begin(T2)
 begin(T3)
