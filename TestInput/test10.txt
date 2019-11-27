@@ -1,10 +1,13 @@
-// T1, T2 can both commit
-// T2 can directly write when it wants to since T1 has committed and has no lock on x2
+// T3 should wait when it wants to read x2
+// Purpose of cannot skip W(T2, x2, 500) is preventing write starvation
+// After T1 commits, T2 can commit and after that, T3 commits.
 begin(T1)
 begin(T2)
-R(T1,x2)
-R(T2,x2)
+begin(T3)
+R(T1, x2)
+W(T2, x2, 500)
+R(T3, x2)
 end(T1)
-W(T2,x2,10)
 end(T2)
+end(T3)
 dump()

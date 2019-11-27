@@ -1,0 +1,10 @@
+// T1, T2 can both commit
+// T2 can read x2 after T1 commits
+begin(T1)
+begin(T2)
+R(T1,x2)
+R(T2,x2)
+W(T2,x2,10)
+end(T1)
+end(T2)
+dump()

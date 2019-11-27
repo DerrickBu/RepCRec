@@ -2,6 +2,7 @@ T1 begins
 T2 begins
 T1 can read variable x2, the value is 20
 T2 can read variable x2, the value is 20
+T2 cannot write variable 2 to new value 10
 T1 commits
 T2 can write variable 2 to new value 10
 T2 commits

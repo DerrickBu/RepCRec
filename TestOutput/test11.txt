@@ -1,21 +1,15 @@
 T1 begins
 T2 begins
 T3 begins
-T1 can read variable x2, the value is 20
-T2 cannot write variable 2 to new value 500
-T3 cannot read variable 2
+T1 can write variable 1 to new value 5
+T3 can write variable 2 to new value 32
+T2 cannot write variable 1 to new value 17
 T1 commits
-T2 can write variable 2 to new value 500
-T2 commits
-T3 can read variable x2, the value is 500
-T3 commits
-site 1 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 2 - x1: 10, x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x11: 110, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 3 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 4 - x2: 500, x3: 30, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x13: 130, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 5 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 6 - x2: 500, x4: 40, x5: 50, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x15: 150, x16: 160, x18: 180, x20: 200, 
-site 7 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 8 - x2: 500, x4: 40, x6: 60, x7: 70, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x17: 170, x18: 180, x20: 200, 
-site 9 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
-site 10 - x2: 500, x4: 40, x6: 60, x8: 80, x10: 100, x12: 120, x14: 140, x16: 160, x18: 180, x20: 200, 
+T2 can write variable 1 to new value 17
+T4 begins
+T4 can write variable 4 to new value 35
+T3 can write variable 5 to new value 21
+T4 cannot write variable 2 to new value 21
+DeadLock detected, we will abort the youngest Transaction in deadlock cycle
+T4 aborts
+T3 can write variable 4 to new value 23
