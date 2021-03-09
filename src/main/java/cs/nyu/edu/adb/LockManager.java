@@ -31,11 +31,7 @@ public class LockManager {
    * @return true if can read, false if we can't
    */
   public boolean canRead(Integer variable, Integer transaction) {
-    if(!writeLock.containsKey(variable) || writeLock.get(variable).equals(transaction)) {
-      return true;
-    } else {
-      return false;
-    }
+    return (!writeLock.containsKey(variable) || writeLock.get(variable).equals(transaction));
   }
 
   /**
@@ -68,14 +64,10 @@ public class LockManager {
    * @return true if can write, false if we can't
    */
   public boolean canWrite(Integer variable, Integer transaction) {
-    if(readLocks.containsKey(variable)
+    return (readLocks.containsKey(variable)
         && readLocks.get(variable).size() == 1
         && readLocks.get(variable).contains(transaction) ||
-        (!readLocks.containsKey(variable) && !writeLock.containsKey(variable))) {
-      return true;
-    } else {
-      return false;
-    }
+        (!readLocks.containsKey(variable) && !writeLock.containsKey(variable)));
   }
 
 }
