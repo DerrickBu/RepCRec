@@ -136,13 +136,9 @@ public class TransactionManager {
    */
   private boolean hashWriteWaiting(Operation operation) {
     Integer variable = operation.getVariable();
-    if(waitingOperations.containsKey(variable)
+    return (waitingOperations.containsKey(variable)
         && !waitingOperations.get(variable).contains(operation)
-        && containsWriteOperation(waitingOperations.get(variable))) {
-      return true;
-    } else {
-      return false;
-    }
+        && containsWriteOperation(waitingOperations.get(variable)));
   }
 
   /**
